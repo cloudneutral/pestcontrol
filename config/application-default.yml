@@ -1,0 +1,56 @@
+############################################################################################
+# Pest Control Application Configuration
+#
+# This file overrides the application configuration properties, mainly in providing a list of
+# available CockroachDB clusters for users to pick from at login time.
+# The credentials are used to retrieve Cluster API session tokens and provide bearer tokens in
+# case of CockroachDB cloud (Cloud API).
+# The cluster type is used to adapt security settings and certain UI features.
+#
+# For the application properties this file overrides, see: src/resources/application.yml.
+# For all other spring boot container properties, see:
+# https://docs.spring.io/spring-boot/appendix/application-properties/index.html
+############################################################################################
+
+## HTTP server parameters
+server:
+  port: 9090
+
+## List of all available CockroachDB clusters
+#
+# Required properties:
+#
+#  cluster-id:   CockroachDB Cloud cluster ID or a unique string for a local cluster
+#  cluster-type: cloud_dedicated, local_secure or local_insecure
+#  api-key:      Only required for cloud_dedicated, see https://www.cockroachlabs.com/docs/cockroachcloud/managing-access#create-api-keys
+#  admin-url:    Base URL for the Cluster API, typically the regional/local cluster load balancer endpoint.
+#    data-source-properties:
+#      url:      The JDBC connection url
+#      username: The SQL user name with ADMIN role
+#      password: The SQL user password
+application:
+  clusters:
+    - cluster-id: "97a73235-fa45-4b4d-a229-f5efd52168ba"
+      cluster-type: cloud_dedicated
+      api-key: "<private-key>"
+      admin-url: "https://admin-odin-qzx.cockroachlabs.cloud:8080"
+      data-source-properties:
+        url: "jdbc:postgresql://kai-odin-qzx.aws-eu-north-1.cockroachlabs.cloud:26257/defaultdb?sslmode=require"
+        username: "craig"
+        password: "cockroach"
+
+    - cluster-id: "Local Secure Cluster"
+      cluster-type: local_secure
+      admin-url: "https://localhost:443"
+      data-source-properties:
+        url: "jdbc:postgresql://localhost:26257/defaultdb?sslmode=require"
+        username: "craig"
+        password: "cockroach"
+
+    - cluster-id: "Local Insecure Cluster"
+      cluster-type: local_insecure
+      admin-url: "http://localhost:8080"
+      data-source-properties:
+        url: "jdbc:postgresql://localhost:26257/defaultdb?sslmode=disable"
+        username: "craig"
+        password: "cockroach"

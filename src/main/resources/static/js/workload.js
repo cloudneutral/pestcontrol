@@ -88,21 +88,14 @@ AppDashboard.prototype = {
         var socket = new SockJS(this.settings.endpoints.socket),
                 stompClient = Stomp.over(socket),
                 _this = this;
-        // stompClient.log = null;
         stompClient.log = (log) => {};
         stompClient.connect({}, function (frame) {
-            stompClient.subscribe(_this.settings.topics.item, function (payload) {
-                var _event = JSON.parse(payload.body);
-                _this.handleWorkloadItemUpdate(_event);
+            stompClient.subscribe(_this.settings.topics.update, function () {
+                _this.handleModelUpdate();
             });
 
-            stompClient.subscribe(_this.settings.topics.summary, function (payload) {
-                var _event = JSON.parse(payload.body);
-                _this.handleMetricsSummaryUpdate(_event);
-            });
-
-            stompClient.subscribe(_this.settings.topics.chart, function () {
-                _this.handleChartUpdate();
+            stompClient.subscribe(_this.settings.topics.charts, function () {
+                _this.handleChartsUpdate();
             });
         });
     },
@@ -115,22 +108,28 @@ AppDashboard.prototype = {
         return v.toFixed(1);
     },
 
-    handleWorkloadItemUpdate: function (workload) {
+    handleModelUpdate: function () {
         var _this = this;
 
-        const rowElt = _this.getElement("row-" +  workload.id);
-        rowElt.find(".remaining-time").text(workload.remainingTime);
-        rowElt.find(".p90").text(_this.round(workload.metrics.p90));
-        rowElt.find(".p99").text(_this.round(workload.metrics.p99));
-        rowElt.find(".p999").text(_this.round(workload.metrics.p999));
-        rowElt.find(".opsPerSec").text(_this.round(workload.metrics.opsPerSec));
-        rowElt.find(".opsPerMin").text(_this.round(workload.metrics.opsPerMin));
-        rowElt.find(".success").text(workload.metrics.success);
-        rowElt.find(".transientFail").text(workload.metrics.transientFail);
-        rowElt.find(".nonTransientFail").text(workload.metrics.nonTransientFail);
+        // console.log("Handle model update");
+
+        $.getJSON("workload/update/metrics", function(json) {
+            // var _event = JSON.parse(payload.body);
+            // console.log("Received agg metrics json: "+json);
+            _this.handleAggregatedMetricsUpdate(json);
+        });
+
+        $.getJSON("workload/update/workers", function(json) {
+            // var _event = JSON.parse(payload.body);
+            // console.log("Received workers json: "+json);
+            json.map(function (worker) {
+                // var _event = JSON.parse(payload.body);
+                _this.handleWorkerUpdate(worker);
+            });
+        });
     },
 
-    handleMetricsSummaryUpdate: function (metrics) {
+    handleAggregatedMetricsUpdate: function (metrics) {
         var _this = this;
 
         const metricElt = _this.getElement("aggregated-metrics");
@@ -144,10 +143,27 @@ AppDashboard.prototype = {
         metricElt.find(".nonTransientFail").text(metrics.nonTransientFail);
     },
 
-    handleChartUpdate: function() {
+    handleWorkerUpdate: function (worker) {
         var _this = this;
 
-        $.getJSON("/api/workload/data-points/p99", function(json) {
+        const rowElt = _this.getElement("row-" +  worker.id);
+        rowElt.find(".remaining-time").text(worker.remainingTime);
+        rowElt.find(".p90").text(_this.round(worker.metrics.p90));
+        rowElt.find(".p99").text(_this.round(worker.metrics.p99));
+        rowElt.find(".p999").text(_this.round(worker.metrics.p999));
+        rowElt.find(".opsPerSec").text(_this.round(worker.metrics.opsPerSec));
+        rowElt.find(".opsPerMin").text(_this.round(worker.metrics.opsPerMin));
+        rowElt.find(".success").text(worker.metrics.success);
+        rowElt.find(".transientFail").text(worker.metrics.transientFail);
+        rowElt.find(".nonTransientFail").text(worker.metrics.nonTransientFail);
+    },
+
+    handleChartsUpdate: function() {
+        var _this = this;
+
+        console.log("Handle charts update");
+
+        $.getJSON("workload/data-points/p99", function(json) {
             const xValues = json[0]["data"];
 
             const yValues = json.filter((item, idx) => idx > 0)
@@ -173,7 +189,7 @@ AppDashboard.prototype = {
             chartP99.update('none');
         });
 
-        $.getJSON("/api/workload/data-points/tps", function(json) {
+        $.getJSON("workload/data-points/tps", function(json) {
             const xValues = json[0]["data"];
 
             const yValues = json.filter((item, idx) => idx > 0)
@@ -204,13 +220,12 @@ AppDashboard.prototype = {
 document.addEventListener('DOMContentLoaded', function () {
     new AppDashboard({
         endpoints: {
-            socket: '/whackanode-service',
+            socket: '/pestcontrol-service',
         },
 
         topics: {
-            item: '/topic/workload/item',
-            summary: '/topic/workload/summary',
-            chart: '/topic/workload/chart'
+            update: '/topic/workload/update',
+            charts: '/topic/workload/charts',
         },
 
         elements: {

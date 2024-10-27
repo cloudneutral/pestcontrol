@@ -1,13 +1,56 @@
 ########################
 # Spring boot properties
-# http://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html
+# https://docs.spring.io/spring-boot/appendix/application-properties/index.html
 ########################
 spring:
-  profiles:
-    active: dev,insecure
+  config:
+    # Import user overrides
+    import: optional:file:./config/
   output:
     ansi:
       enabled: always
+  profiles:
+    active: default
+
+  ## Truststore for SSL/TLS access to secure clusters
+  ssl:
+    bundle:
+      jks:
+        pestcontrol:
+          truststore:
+            location: "file:.certs/pestcontrol.p12"
+            password: "secret"
+            type: "PKCS12"
+
+  ## Common hikari connection pool settings for all cluster data sources
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      # The property controls the maximum size that the pool is allowed to reach,
+      # including both idle and in-use connections.
+      maximum-pool-size: 32
+      # The property controls the minimum number of idle connections that HikariCP
+      # tries to maintain in the pool, including both idle and in-use connections.
+      minimum-idle: 0
+      # The number of milliseconds before the pool initialization fails, or 0 to
+      # validate connection setup but continue with pool start, or less than zero to
+      # skip all initialization checks and start the pool without delay.
+      initialization-fail-timeout: -1
+      # Set the maximum number of milliseconds that a client will wait for a connection from the pool.
+      connection-timeout: 3000
+      # Sets the maximum number of milliseconds that the pool will wait for a connection to be validated as alive.
+      validation-timeout: 5000
+      # Controls the maximum amount of time that a connection is allowed to sit idle in the pool.
+      # Must be lower than max-lifetime, lowest is 10s
+      idle-timeout: 10000
+      # Controls the maximum lifetime of a connection in the pool. When a connection reaches this timeout,
+      # even if recently used, it will be retired from the pool. An in-use connection will never be retired,
+      # only when it is idle will it be removed.
+      # Lowest possible value is 30s.
+      max-lifetime: 30000
+      # Controls the keepalive interval for a connection in the pool.
+      keepalive-time: 0
+
   ##################################
   jackson:
     serialization:
@@ -18,30 +61,11 @@ spring:
       fail_on_ignored_properties: false
     default-property-inclusion: non_null
     locale: en_US
+
   #############################
   mvc:
     problemdetails:
       enabled: false
-  #############################
-  datasource:
-    driver-class-name: org.postgresql.Driver
-    hikari:
-      pool-name: whack-a-node
-      auto-commit: true
-      # Pool cap
-      maximum-pool-size: 64
-      # No idle conns
-      minimum-idle: 0
-      # Negative bypass pool warmup
-      initialization-fail-timeout: -1
-      # Max time for pool to wait on new conn
-      connection-timeout: 3000
-      # Max time for pool to wait on conn validation
-      validation-timeout: 5000
-      # Must be lower than max-lifetime, lowest is 10s
-      idle-timeout: 10000
-      # Lowest possible is 30s
-      max-lifetime: 30000
 #############################
 management:
   endpoints:
@@ -56,7 +80,7 @@ management:
     defaults:
       enabled: true
     db:
-      enabled: true
+      enabled: false
   metrics:
     tags:
       application: ${spring.application.name}
@@ -66,6 +90,9 @@ logging:
     console: "%clr(%d{${LOG_DATEFORMAT_PATTERN:HH:mm:ss.SSS}}){faint} %clr(${LOG_LEVEL_PATTERN:%5p}) [%t] %clr([%logger{39}]){cyan} %m%n${LOG_EXCEPTION_CONVERSION_WORD:%wEx}"
 #############################
 server:
+  #  ssl:
+  #    bundle: pestcontrol
+  #    client-auth: NEED
   port: 9090
   error:
     whitelabel:
@@ -75,8 +102,9 @@ server:
     include-message: always
     include-stacktrace: always
     include-binding-errors: always
+
+#############################
+# Application specifics
 #############################
 application:
   scriptPath: ${user.dir}
-  disruptionSpecificationPath: ${user.dir}/.disruption.json
-  adminUrl: http://localhost:8080

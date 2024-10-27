@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
-    <title>Whack-a-node</title>
+    <title>Pest Control</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@docsearch/css@3">
     <link href="/webjars/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
     <link href="../static/css/main.css" rel="stylesheet" th:href="@{/css/main.css}"/>
@@ -25,7 +25,7 @@
                 <hr/>
 
                 <div class="d-inline-grid gap-2 d-md-flex justify-content-md-end">
-                    <button class="btn btn-sm btn-warning me-md-0" type="button"
+                    <button class="btn btn-sm btn-outline-warning me-md-0" type="button"
                             data-bs-toggle="modal" data-bs-target="#confirmCancelAllModal">Cancel All
                     </button>
                     <button class="btn btn-sm btn-outline-danger me-md-0" type="button"
@@ -49,39 +49,39 @@
                         <th>TpS</th>
                         <th>TpM</th>
                         <th>Success</th>
-                        <th>Fails</th>
-                        <th>Errors</th>
+                        <th>Transient</th>
+                        <th>Non-Transient</th>
                         <th>Actions</th>
                     </tr>
                     </thead>
                     <tbody>
-                    <tr th:each="workload, iStat : ${workloads}" th:id="${'row-' + workload.content.id}">
-                        <td scope="row">
-                            <a th:href="${workload.getRequiredLink('self').href}"
-                               th:text="${workload.content.title}"></a>
+                    <tr th:each="worker, iStat : ${workers}" th:id="${'row-' + worker.content.id}">
+                        <td scope="row" th:if="${worker.hasLink('self')}">
+                            <a th:href="${worker.getLink('self').href}" th:text="${worker.content.title}"></a>
                         </td>
-                        <td th:text="${workload.content.id}"/>
-                        <td th:text="${workload.content.remainingTime}" class="remaining-time"/>
-                        <td th:text="${workload.content.metrics.p90}" class="p90"/>
-                        <td th:text="${workload.content.metrics.p99}" class="p99"/>
-                        <td th:text="${workload.content.metrics.p999}" class="p999"/>
-                        <td th:text="${#numbers.formatDecimal(workload.content.metrics.opsPerSec,1,1)}"
-                            class="opsPerSec"/>
-                        <td th:text="${#numbers.formatDecimal(workload.content.metrics.opsPerMin,1,1)}"
-                            class="opsPerMin"/>
-                        <td th:text="${workload.content.metrics.success}" class="success"/>
-                        <td th:text="${workload.content.metrics.transientFail}" class="transientFail"/>
-                        <td th:text="${workload.content.metrics.nonTransientFail}" class="nonTransientFail"/>
+                        <td scope="row" th:unless="${worker.hasLink('self')}" th:text="${worker.content.title}"></td>
+                        <td th:text="${worker.content.id}"></td>
+                        <td th:text="${worker.content.remainingTime}" class="remaining-time"></td>
+                        <td th:text="${worker.content.metrics.p90}" class="p90"></td>
+                        <td th:text="${worker.content.metrics.p99}" class="p99"></td>
+                        <td th:text="${worker.content.metrics.p999}" class="p999"></td>
+                        <td th:text="${#numbers.formatDecimal(worker.content.metrics.opsPerSec,1,1)}"
+                            class="opsPerSec"></td>
+                        <td th:text="${#numbers.formatDecimal(worker.content.metrics.opsPerMin,1,1)}"
+                            class="opsPerMin"></td>
+                        <td th:text="${worker.content.metrics.success}" class="success"></td>
+                        <td th:text="${worker.content.metrics.transientFail}" class="transientFail"></td>
+                        <td th:text="${worker.content.metrics.nonTransientFail}" class="nonTransientFail"></td>
 
                         <td scope="row">
-                            <form method="POST" th:action="${workload.getRequiredLink('cancel').href}"
-                                  th:if="${workload.hasLink('cancel')}">
+                            <form method="POST" th:action="${worker.getRequiredLink('cancel').href}"
+                                  th:if="${worker.hasLink('cancel')}">
                                 <button type="submit" name="submit" value="value" class="btn btn-sm btn-outline-warning">
                                     Cancel
                                 </button>
                             </form>
-                            <form method="POST" th:action="${workload.getRequiredLink('delete').href}"
-                                  th:if="${workload.hasLink('delete')}">
+                            <form method="POST" th:action="${worker.getRequiredLink('delete').href}"
+                                  th:if="${worker.hasLink('delete')}">
                                 <button type="submit" name="submit" value="value" class="btn btn-sm btn-outline-danger">
                                     Delete
                                 </button>
@@ -137,7 +137,7 @@
                         <label for="workload-type" class="col-form-label">Type of workload:</label>
                         <select th:field="*{workloadType}" id="workload-type" class="form-select"
                                 aria-label="Default select">
-                            <option th:each="wt : ${T(io.cockroachdb.wan.web.model.WorkloadType).values()}"
+                            <option th:each="wt : ${T(io.cockroachdb.pestcontrol.domain.WorkloadType).values()}"
                                     th:value="${wt}" th:text="${wt.displayValue}"></option>
                         </select>
 
@@ -226,22 +226,10 @@
     }
 </script>
 
-<script src="js/color-modes.js"></script>
-<script src="js/main.js"></script>
-<script src="js/workload.js"></script>
+<script th:src="@{/js/color-modes.js}"></script>
+<script th:src="@{/js/main.js}"></script>
+<script th:src="@{/js/workload.js}"></script>
 
 </body>
 </html>
 
-
-<!--                        th:href="@{/workload/cancel/{id}(id=${workload.content.id})}"-->
-<!--                        th:href="${workload.getRequiredLink('cancel').href}"-->
-<!--
-                        <a role="button" id="workload-cancel"
-                           th:if="${workload.hasLink('cancel')}"
-                           class="btn btn-sm btn-warning">Cancel</a>
-                        <a role="button" id="workload-delete"
-                           th:if="${workload.hasLink('delete')}"
-                           th:href="${workload.getRequiredLink('delete').href}"
-                           class="btn btn-sm btn-danger">Delete</a>
--->

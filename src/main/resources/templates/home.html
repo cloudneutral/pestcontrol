@@ -1,14 +1,15 @@
 <!doctype html>
-<html lang="en" data-bs-theme="auto">
+<html lang="en" data-bs-theme="auto" xmlns:sec="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="">
-    <title>Whack-a-node</title>
+    <title>Pest Control</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@docsearch/css@3">
     <link href="/webjars/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
     <link href="../static/css/main.css" rel="stylesheet" th:href="@{/css/main.css}"/>
 </head>
+
 <body>
 
 <div th:replace="~{fragments/theme :: theme}"></div>
@@ -18,76 +19,40 @@
 <main>
     <svg th:replace="~{fragments/symbols :: symbols}"></svg>
 
-    <div class="py-5 bg-body-tertiary">
-        <div class="container">
-            <div class="alert alert-warning" role="alert"
-                 th:unless="${cluster.isAvailable()}">
-                <h4 class="alert-heading">Cluster is Unresponsive</h4>
-                <p>Unable to retrieve cluster node status. This can be for several reasons:</p>
-                <ul>
-                    <li>There are not enough available nodes in the cluster, check the <a target="_blank" th:if="${adminUrl}" th:href="${adminUrl}">DB Console</a>.</li>
-                    <li>You are using CockroachDB Cloud or a local secure cluster and have no valid access token. Run <code>./cluster-admin login</code> to authenticate.</li>
-                    <li>You are using a local CockroachDB cluster and have not started any nodes. Run <code>./cluster-admin start-all</code>.</li>
-                    <li>You are using a local CockroachDB cluster and have not started the load balancer. Run <code>./cluster-admin start-lb</code>.</li>
-                </ul>
-                <p>This page will automatically refresh.</p>
-            </div>
+    <div class="thick-divider"></div>
 
-            <div th:each="locality: ${cluster.getLocalities(level)}">
-                <h4 th:text="${locality}"></h4>
-                <hr/>
-                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
-                    <div th:each="node: ${cluster.getNodes(locality)}">
-                        <form th:action="@{'/node-action'}" method="post">
-                            <input type="hidden" name="node-id" th:value="${node.getId()}"/>
-
-                            <div class="col">
-                                <div th:id="${'node-' + node.getId()}" class="card shadow-sm alert"
-                                     th:classappend="${cluster.getCardClass(node.getNodeStatus())}">
-                                    <svg class="bd-placeholder-img card-img-top"
-                                         width=128 height=128 fill="currentColor"
-                                         viewBox="0 0 16 16">
-                                        <use th:href="${cluster.getCardImage(node.getNodeStatus())}"></use>
-                                    </svg>
-
-                                    <div class="card-body">
-                                        <h5 class="card-title text-decoration-underline"
-                                            th:text="${'Node ' + node.getId()}"></h5>
-                                        <h5 class="card-subtitle mb-3"
-                                            th:text="${node.getLocality()}"></h5>
-                                        <h6 class="card-subtitle mb-3"
-                                            th:text="${node.getNodeDetail().getSqlAddress().getAddressField()}"></h6>
-                                        <h6 class="card-subtitle mb-3"
-                                            th:text="${node.getNodeDetail().getBuildTag()}"></h6>
-                                        <h6 class="card-subtitle mb-3 wan-ranges"
-                                            th:text="${node.getNodeStatus().getRangeDetails()}"></h6>
-                                    </div>
-
-                                    <div class="card-footer">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div role="group">
-                                                <a role="button" class="btn btn-sm btn-outline-success"
-                                                   th:href="${node.getRequiredLink('self').href}">View</a>
-                                                <input class="btn btn-sm btn-outline-danger" type="submit"
-                                                       name="node-action" value="Disrupt">
-                                                <input class="btn btn-sm btn-outline-info" type="submit"
-                                                       name="node-action" value="Recover">
-                                            </div>
-                                            <div class="wan-spinner" style="display: none">
-                                                <span class="spinner-grow spinner-grow-sm" aria-hidden="true"></span>
-                                            </div>
-                                            <small class="wan-last-active"
-                                                   th:text="${node.getNodeStatus().getLastActive()}"></small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div> <!-- col -->
-                        </form>
-                    </div>
+    <div class="px-4 pt-5 my-5 text-center">
+        <h1 class="display-4 fw-bold text-body-emphasis">Welcome to Pest Control</h1>
+        <div class="col-lg-6 mx-auto">
+            <div sec:authorize="!isAuthenticated()">
+                <p class="lead mb-4">
+                    Using this tool you can observe the status of a CockroachDB
+                    cluster and cause disruption by killing individual nodes,
+                    zones or entire regions and then recover.</p>
+                <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mb-5">
+                    <a class="btn btn-lg btn-primary" href="/login">[[#{navigation.login}]]</a>
                 </div>
             </div>
-        </div> <!-- container -->
-    </div> <!-- main -->
+            <div sec:authorize="isAuthenticated()">
+                <div class="shadow-sm p-3 mb-5 bg-body-secondary rounded">
+                    Signed in as
+                    <span class="badge text-bg-success" th:text="${#authentication.name}"></span>
+                    to
+                    <a type="btn" th:href="${clusterProperties.adminUrl}" id="clusterId"
+                       th:text="${clusterProperties.clusterId}">DB Console</a>.
+
+                    <span class="badge text-bg-success" th:text="${clusterVersion}"></span>
+                </div>
+
+                <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mb-5">
+                    <a class="btn btn-lg btn-primary" href="/cluster">[[#{navigation.cluster.dashboard}]]</a>
+                    <a class="btn btn-lg btn-secondary" href="/workload">[[#{navigation.cluster.workloads}]]</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="thick-divider"></div>
 </main>
 
 <footer th:replace="~{fragments/footer :: footer}"></footer>
@@ -100,21 +65,9 @@
 <script src="/webjars/sockjs-client/1.5.1/sockjs.min.js"></script>
 <script src="/webjars/stomp-websocket/2.3.4/stomp.min.js"></script>
 
-<script src="js/color-modes.js"></script>
-<script src="js/main.js"></script>
-<script src="js/dashboard.js"></script>
+<script th:src="@{/js/color-modes.js}"></script>
+<!--<script th:src="@{/js/main.js}"></script>-->
+<!--<script th:src="@{/js/dashboard.js}"></script>-->
 
-<!--
-<a role="button" class="btn btn-sm btn-outline-danger"
-   th:if="${node.hasLink('disrupt')}"
-   th:href="${node.getRequiredLink('disrupt').href}">Disrupt</a>
-<a role="button" class="btn btn-sm btn-outline-info disabled"
-   th:unless="${node.hasLink('disrupt')}">Recover</a>
-<a role="button" class="btn btn-sm btn-outline-info"
-   th:if="${node.hasLink('recover')}"
-   th:href="${node.getRequiredLink('recover').href}">Recover</a>
-<a role="button" class="btn btn-sm btn-outline-info disabled"
-   th:unless="${node.hasLink('recover')}">Recover</a>
--->
 </body>
 </html>

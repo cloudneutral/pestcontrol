@@ -1,5 +1,5 @@
 <p>	
-	<a href="https://github.com/cloudneutral/whack-a-node/actions/workflows/maven.yml"><img src="https://github.com/cloudneutral/whack-a-node/actions/workflows/maven.yml/badge.svg?branch=main" alt="">
+	<a href="https://github.com/cloudneutral/pestcontrol/actions/workflows/maven.yml"><img src="https://github.com/cloudneutral/pestcontrol/actions/workflows/maven.yml/badge.svg?branch=main" alt="">
 </p>
 
 <!-- TOC -->
@@ -8,45 +8,53 @@
   * [Compatibility](#compatibility)
   * [How it works](#how-it-works)
 * [Terms of Use](#terms-of-use)
-* [Building](#building-)
-  * [Prerequisites](#prerequisites)
+* [Prerequisites](#prerequisites)
   * [Install the JDK](#install-the-jdk)
+* [Building](#building)
   * [Clone the project](#clone-the-project)
-* [Download artifact](#download-artifact)
-* [Running](#running)
-  * [CockroachDB Cloud Configuration](#cockroachdb-cloud-configuration)
+  * [Build the artifacts](#build-the-artifacts)
+* [Installing](#installing)
+* [Configuration](#configuration)
+  * [Application](#application)
+  * [Clusters](#clusters)
+    * [DataSource Properties](#datasource-properties)
   * [Local Cluster Configuration](#local-cluster-configuration)
-* [Appendix: Configuration](#appendix-configuration)
+* [Running](#running)
+  * [Local Cluster Management](#local-cluster-management)
+    * [Shutdown](#shutdown)
+* [Appendix: Configuration Files](#appendix-configuration-files)
 <!-- TOC -->
 
 # About
 
 <img  align="left" src=".github/logo.png" alt="" width="64"/> 
 
-[Whack-a-node](https://github.com/cloudneutral/whack-a-node) is a simple graphical
-and command-line tool for controlling and visualizing CockroachDB cluster failures 
-and its impact on application workloads. 
+[Pest Control](https://github.com/cloudneutral/pestcontrol) is a combined graphical and command-line tool for 
+controlling and visualizing CockroachDB cluster failures, and it's 
+impact on application workloads. It supports CockroachDB Cloud 
+and local, self-hosted clusters for which it provides easy-to-use 
+bash scripts.
 
 ## Main features
 
 The main features include:
 
-- Visualize cluster health in a web UI.
-- Visualize client-side workload impact during disruptions.
-- Push-button node disruption and recovery.
-- Quick, simple deployment and management of local CockroachDB clusters.
+- Visualize cluster health in a web UI with disruption and recovery controls.
+- Visualize impact on client workloads during steady state and node / zone / region disruptions.
+- Easy-to-use bash scripts for local CockroachDB cluster deployment and management.
+- Ad-hoc setup and testing of local CockroachDB clusters
 
-Landing page showing the cluster layout and node status:
+The landing page showing the cluster layout and node status:
 
 ![ui1](.github/ui-1.png)
 
-Listing optional client side mini-workloads against the database:
+The workload page with some activity:
 
 ![ui2](.github/ui-2.png)
 
 ## Compatibility
 
-This tool supports the following platforms/versions:
+This tool supports the following platforms and versions:
 
 - CockroachDB Cloud v22.2+
   - Requires a feature flag enabled for the organization (file a support request) 
@@ -58,16 +66,18 @@ This tool supports the following platforms/versions:
 
 ## How it works
 
-Whack-a-node is made of: 
+Pest Control consists of two parts:
 
-1. A spring-boot web app for the visuals (with a REST API) 
-1. Bash scripts for retrieving cluster status and details, causing disruptions, 
-recover nodes, etc.
-2. Bash scripts for quick and easy installing and configuring of a local CockroachDB cluster.
+1. A front-end web app for the visuals along with a REST API for automation. 
+2. Bash scripts for easy installing and management of local CockroachDB clusters.
 
-The command-line bash scripts can be used independently of the web app. 
-The web app in turn uses the bash scripts to pass commands to the CockroachDB cluster 
-and JDBC to run basic workloads. 
+The web app adapts to the logged in cluster type. It can be either CockroachDB Cloud 
+or a local, self-hosted cluster. It mainly uses the Cockroach Cloud and Cluster APIs 
+for interaction with the cluster, with the exception for local clusters that don't
+provide any disruption API like Cockroach Cloud. For that, it uses bash scripts
+to pass for disrupting and recovering node failures. 
+
+Lastly, it uses JDBC to run optional user triggered workloads against the cluster.
 
 # Terms of Use
 
@@ -76,18 +86,13 @@ own risk and Cockroach Labs makes no guarantees or warranties about its operatio
 
 See [MIT](LICENSE.txt) for terms and conditions.
 
-# Building and Running
+# Prerequisites
 
-The only building needed is the visualization spring boot app that also 
-acts as the control plane and database client.
-
-## Prerequisites
+Things you need to run Pest Control locally.
 
 - Java 17+ JDK
     - https://openjdk.org/projects/jdk/17/
     - https://www.oracle.com/java/technologies/downloads/#java17
-- Maven 3+ (optional, embedded wrapper available)
-    - https://maven.apache.org/
 
 ## Install the JDK
 
@@ -101,113 +106,192 @@ Ubuntu:
 
     sudo apt-get install openjdk-17-jdk
 
+# Building
+
+Instruction for building the project locally, as an alternative to using the
+packaged TAR.GZ assembly artifact.
+
 ## Clone the project
 
-    git clone git@github.com:cloudneutral/whack-a-node.git && cd whack-a-node
+    git clone git@github.com:cloudneutral/pestcontrol.git && cd pestcontrol
 
-## Download artifact
+## Build the artifacts
+
+    chmod +x mvnw
+    ./mvnw clean install
+
+# Installing
 
 If you prefer to use a packaged artifact (release or snapshot) rather than building, 
-see [GitHub Packages](https://github.com/cloudneutral/whack-a-node/packages/2285983?version=1.0.0-SNAPSHOT).
+see [GitHub Packages](https://github.com/cloudneutral/pestcontrol/packages/2285983?version=1.0.0-SNAPSHOT).
 
-Scroll to the current `TAR.GZ` file and copy the download URL, then run:
+Scroll to the latest `TAR.GZ` file and copy the download URL, then run:
 
-    curl -o whack-a-node.tar.gz <paste-url-here>
-    tar xvf whack-a-node.tar.gz && cd whack-a-node
+    curl -o pestcontrol.tar.gz <paste-url-here>
+    tar xvf pestcontrol.tar.gz && cd pestcontrol
 
-# Running
+# Configuration
 
-These instructions cover creating a local, self-hosted cluster or using CockroachDB Cloud.
+Pest Control is configured through the files available in the [config](config) directory.
+The main configuration properties are in the [config/application-default.yml](config/application-default.yml) file.
+It includes a list of CockroachDB cluster definitions.
 
-## CockroachDB Cloud Configuration
+Example with three cloud clusters and two local:
+```yaml
+application:
+  clusters:
+    - cluster-id: "97a73235-fa45-4b4d-a229-f5efd52168ba"
+      cluster-type: cloud_dedicated
+      api-key: "..."
+      admin-url: "https://admin-odin-qzx.cockroachlabs.cloud:8080"
+      data-source-properties:
+        url: "jdbc:postgresql://odin-qzx.aws-eu-north-1.cockroachlabs.cloud:26257/defaultdb?sslmode=require"
+        username: "craig"
+        password: "cockroach"
+   
+    - cluster-id: "bdeb3c96-4ab4-458a-86ac-927efd844294"
+      cluster-type: cloud_dedicated
+      api-key: "..."
+      admin-url: "https://admin-hugin-qzx.cockroachlabs.cloud:8080"
+      data-source-properties:
+        url: "jdbc:postgresql://hugin-qzx.aws-eu-north-1.cockroachlabs.cloud:26257/defaultdb?sslmode=require"
+        username: "craig"
+        password: "cockroach"
+   
+    - cluster-id: "e3e17085-bbda-4d13-85a4-49e81dab04b0"
+      cluster-type: cloud_dedicated
+      api-key: "..."
+      admin-url: "https://admin-munin-qzx.cockroachlabs.cloud:8080"
+      data-source-properties:
+        url: "jdbc:postgresql://munin-qzx.aws-eu-north-1.cockroachlabs.cloud:26257/defaultdb?sslmode=require"
+        username: "craig"
+        password: "cockroach"
 
-1. To get started with an existing CockroachDB Cloud cluster, run:
-    
-       ./cluster-admin 
+    - cluster-id: "Local Secure Cluster"
+      cluster-type: local_secure
+      admin-url: "https://localhost:443"
+      data-source-properties:
+        url: "jdbc:postgresql://localhost:26257/defaultdb?sslmode=require"
+        username: "craig"
+        password: "cockroach"
+      
+    - cluster-id: "Local Insecure Cluster"
+      cluster-type: local_insecure
+      admin-url: "http://localhost:8080"
+      data-source-properties:
+        url: "jdbc:postgresql://localhost:26257/defaultdb?sslmode=disable"
+        username: "craig"
+        password: "cockroach"
+```
 
-    Pick option `cloud`. Alternatively, edit the existing `settings.cfg`
-   and change `DEPLOY_MODE` to `cloud` and `SECURITY_MODE` to `cloud`.
+## Application
 
-1. (optional) Edit [config/settings-cloud.cfg](config/settings-cloud.cfg) and change the credentials to match your cluster.
+Top-level entry in `application<-profile>.yml`.
 
-    | Key              | Value                                                                                                                                           | Example                                                 |
-    |------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|:--------------------------------------------------------|
-    | CC_CLUSTERID     | Your cluster UUID, i.e: (https://cockroachlabs.cloud/cluster/<CLUSTER_ID>)                                                                      | (see CC console)                                        | 
-    | CC_SSL_ROOT_CERT | The CA root certificate for your [cluster](https://cockroachlabs.cloud/) stored locally.                                                        | (see CC console)                                        | 
-    | CC_API_KEY       | Create an [API key](https://www.cockroachlabs.com/docs/cockroachcloud/managing-access#create-api-keys) for the cluster and copy the secret key. | (secret key)                                            | 
-    | ADMIN_URL        | DB Console URL.                                                                                                                                 | https://admin-my-cluster-qmg.cockroachlabs.cloud:8080   | 
-    | DB_HOST          | Database host name.                                                                                                                             | my-cluster-qmg.aws-eu-north-1.cockroachlabs.cloud:26257 | 
-    | DB_USER          | Database user name.                                                                                                                             | craig                                                   | 
-    | DB_PASSWORD      | Database user password                                                                                                                          | cockroach                                               | 
+```yaml
+    application:
+      clusters:
+        ...
+ ```
 
-1. Install a CockroachDB binary, login to get an API access token and start the service:
+| Field Name  | Optional | Default | Description                         |
+|-------------|----------|---------|-------------------------------------|
+| clusters    | No       | -       | Collection of CockroachDB clusters. |
 
-       ./cluster-admin install
-       ./cluster-admin login
-       ./cluster-admin start-service
-       ./cluster-admin open
+## Clusters
+
+Collection of cluster definitions.
+
+```yaml
+    application:
+      clusters:
+        - cluster-id: "38e2ce4f-e9b6-43ae-a9ed-64d673e443cb"
+          cluster-type: cloud_dedicated
+          api-key: "..."
+          admin-url: "https://admin-odin-qzx.cockroachlabs.cloud:8080"
+          data-source-properties:
+            ...
+```
+
+| Field Name             | Optional | Default         | Description                                                                                                                                    |
+|------------------------|----------|-----------------|------------------------------------------------------------------------------------------------------------------------------------------------|
+| cluster-id             | No       | -               | Either a CockroachDB Cloud cluster ID or a unique string for a local cluster                                                                   |
+| cluster-type           | Yes      | cloud_dedicated | `cloud_dedicated`, `local_secure` or `local_insecure`                                                                                          |
+| api-key                | Yes      | -               | Only required for `cloud_dedicated`, see [Create API Keys](https://www.cockroachlabs.com/docs/cockroachcloud/managing-access#create-api-keys). |
+| admin-url              | No       | -               | Base URL for the Cluster API which is typically the regional/local cluster load balancer endpoint.                                             |
+| data-source-properties | No       | -               | Data source connection parameters.                                                                                                             |
+
+### DataSource Properties
+
+The JDBC datasource configuration for querying node status and running workloads.
+
+```yaml
+    application:
+      clusters:
+          data-source-properties:
+            url: "jdbc:postgresql://localhost:26257/defaultdb?sslmode=require"
+            username: "craig"
+            password: "cockroach"
+```
+
+| Field Name | Optional | Default   | Description                                |
+|------------|----------|-----------|--------------------------------------------|
+| url        | No       | -         | The JDBC connection URL.                   |
+| username   | No       | craig     | The SQL user with ADMIN role.              |
+| password   | Yes      | cockroach | The SQL user password for secure clusters. |
+
 
 ## Local Cluster Configuration
 
-1. To get started with a local cluster, run:
+The default settings are usually sufficient unless you have conflicting network ports occupied.
+Edit [config/settings-secure.cfg](config/settings-secure.cfg) or [config/settings-insecure.cfg](config/settings-insecure.cfg) and change the 
+details, as necessary.
 
-       ./cluster-admin 
+# Running
 
-   Pick option `secure` or `insecure`. Alternatively, edit the existing `settings.cfg`
-   and change `DEPLOY_MODE` to `local` and `SECURITY_MODE` to `secure|insecure`.
+Start the app in the background with:
+    
+    ./cluster-admin start-service
 
-1. (optional) Edit [config/settings-secure.cfg](config/settings-secure.cfg)
-   or [config/settings-insecure.cfg](config/settings-insecure.cfg) and change the details if needed.
-   The default settings are usually sufficient unless you have conflicting
-   network ports occupied.
+or
 
-1. (optional) Edit [config/settings-local.cfg](config/settings-local.cfg) to tailor cluster listen ports,
-   locality flags etc.
+    java -jar target/pestcontrol.jar
 
-1. (optional) Edit [config/haproxy.cfg](config/haproxy.cfg) to mirror any listen port changes you make. This
-   configuration is pre-configured for up to 18 local nodes but HAProxy automatically adjusts to anything less.
+Now you can access the application via http://localhost:9090 and login to the cluster of choice.
 
-1. Install a CockroachDB binary, start the cluster, load balancer and the service:
-   2. [Secure mode]
+## Local Cluster Management
+
+This section only apply if you intend to install and operate a local, 
+secure or insecure cluster.
+
+Edit `config/settings.cfg` and change `security_mode` to `secure|insecure`
+if needed.
+
+    ./cluster-admin install
+    ./cluster-admin start-all
+    ./cluster-admin start-lb
+    ./cluster-admin init
+    ./cluster-admin open
    
-          ./cluster-admin install
-          ./cluster-admin certs
-          ./cluster-admin start-all
-          ./cluster-admin init
-          ./cluster-admin start-lb
-          ./cluster-admin start-service
-          ./cluster-admin login
-          ./cluster-admin open
-   3. [Insecure mode]
-
-          ./cluster-admin install
-          ./cluster-admin start-all
-          ./cluster-admin init
-          ./cluster-admin start-lb
-          ./cluster-admin start-service
-          ./cluster-admin open
+### Shutdown
 
 To shut things down, run the inverse:
 
     ./cluster-admin stop-service
     ./cluster-admin stop-lb
     ./cluster-admin stop-all
+    ./cluster-admin clean
 
-To see the full menu of commands, just run `./cluster-admin`. 
+# Appendix: Configuration Files
 
-# Appendix: Configuration
+Pest Control can be configured through the files available in the `config` directory:
 
-Every aspect of whack-a-node can be configured through the files available in the `config` directory:
-
-1. [settings-cloud.sh](config/settings-cloud.cfg) - Settings for using an existing CockroachDB Cloud cluster.
+1. [settings.sh](config/settings.cfg) - Settings for creating and managing a local CockroachDB cluster.
 1. [settings-insecure.sh](config/settings-insecure.cfg) - Settings for using a local CockroachDB self-hosted cluster in insecure mode.
 1. [settings-secure.sh](config/settings-secure.cfg) - Settings for using a local CockroachDB self-hosted cluster in secure mode.
-1. [settings-local.sh](config/settings-local.cfg) - Settings for creating and managing a local CockroachDB cluster.
-1. [settings-service.sh](config/settings-service.cfg) - Settings for the whack-a-node service.
-1. [haproxy.cfg](config/haproxy.cfg) - HAProxy configuration for local CockroachDB cluster.
 1. [init.sql](config/init.sql) - Init SQL statements (optional).
-
-More details are found in the configuration file comments.
+1. [haproxy.cfg](config/haproxy.cfg) - HAProxy configuration for local CockroachDB cluster.
+1. [application-default.yml](config/application-default.yml) - Cluster connection settings.
 
 ---
 

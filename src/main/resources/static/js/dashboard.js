@@ -22,8 +22,13 @@ AppDashboard.prototype = {
             });
 
             stompClient.subscribe(_this.settings.topics.refresh, function (payload) {
-                location.reload();
                 console.log("Reload page");
+                location.reload();
+            });
+
+            stompClient.subscribe(_this.settings.topics.update, function (payload) {
+                console.log("Cluster model update");
+                $.getJSON("cluster/update", function(json) {});
             });
         });
     },
@@ -42,7 +47,7 @@ AppDashboard.prototype = {
         var divElt = _this.getElement("node-" +  node.id);
 
         // Flash spinner for a few sec
-        var _spinnerElt = divElt.find(".wan-spinner");
+        var _spinnerElt = divElt.find(".pc-spinner");
         _spinnerElt.attr('style','display: block');
         setTimeout(function () {
             _spinnerElt.attr('style','display: none');
@@ -84,8 +89,8 @@ AppDashboard.prototype = {
         }
 
         // Update data elements
-        divElt.find(".wan-last-active").text(node.status.lastActive);
-        divElt.find(".wan-ranges").text(node.status.rangeDetails);
+        divElt.find(".pc-last-active").text(node.status.lastActive);
+        divElt.find(".pc-ranges").text(node.status.rangeDetails);
     },
 
 
@@ -121,13 +126,14 @@ AppDashboard.prototype = {
 document.addEventListener('DOMContentLoaded', function () {
     new AppDashboard({
         endpoints: {
-            socket: '/whackanode-service',
+            socket: '/pestcontrol-service',
         },
 
         topics: {
             status: '/topic/dashboard/status',
             toast: '/topic/dashboard/toast',
             refresh: '/topic/dashboard/refresh',
+            update: '/topic/dashboard/update',
         },
 
         elements: {

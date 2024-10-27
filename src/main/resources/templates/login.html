@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en" data-bs-theme="auto">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Pest Control</title>
+
+    <link rel="canonical" href="https://github.com/cloudneutral/pestcontrol/">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@docsearch/css@3">
+    <link href="/webjars/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="../static/css/main.css" rel="stylesheet" th:href="@{/css/main.css}"/>
+</head>
+
+<body>
+
+<div th:replace="~{fragments/theme :: theme}"></div>
+
+<header th:replace="~{fragments/header :: header}"></header>
+
+<div class="container col-xl-10 col-xxl-8 px-4 py-5">
+    <div class="row align-items-center g-lg-5 py-5">
+<!--
+        <div class="col-lg-7 text-center text-lg-start">
+            <h1 class="display-4 fw-bold lh-1 text-body-emphasis mb-3">[[#{authentication.login.headline}]]</h1>
+            <p class="col-lg-10 fs-4">
+            </p>
+        </div>
+-->
+        <div class="col-md-10 mx-auto col-lg-7">
+            <div class="alert alert-danger" role="alert" th:if="${MSG_ERROR}" th:text="${MSG_ERROR}">
+            </div>
+
+            <div class="alert alert-info" role="alert" th:if="${MSG_INFO}" th:text="${MSG_INFO}">
+            </div>
+
+            <form th:action="${requestUri}" th:object="${authentication}"
+                  class="p-4 p-md-5 border rounded-3 bg-body-tertiary" method="post">
+
+                <div class="form-floating mb-3">
+                    <select th:field="*{clusterId}" id="cluster-id" class="form-select"
+                            aria-label="Default select">
+                        <option th:each="id : ${clusterIds}"
+                                th:value="${id}" th:text="${id}"></option>
+                    </select>
+                    <label for="cluster-id">Cluster ID</label>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <div class="form-check">
+                        <input th:field="*{useFileCredentials}" class="form-check-input" type="checkbox"
+                               id="login-use-file-credentials">
+                        <label class="form-check-label" for="login-use-file-credentials">
+                            Use pre-configured credentials
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <input th:field="*{username}" type="text" class="form-control"
+                           id="username" placeholder="craig">
+                    <label for="username">SQL user name</label>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <input th:field="*{password}" type="password" class="form-control"
+                           id="password" placeholder="Password">
+                    <label for="password">SQL user password</label>
+                </div>
+<!--
+                <div class="checkbox mb-3">
+                    <label>
+                        <input type="checkbox" value="remember-me"> Remember me
+                    </label>
+                </div>
+-->
+                <button class="w-100 btn btn-lg btn-primary" type="submit">Sign in</button>
+                <hr class="my-4">
+                <small class="text-body-secondary">By signing in, you request a
+                    <a href="https://www.cockroachlabs.com/docs/stable/cluster-api">Cluster API</a> session token.</small>
+            </form>
+        </div>
+    </div>
+</div>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+<script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+<script src="https://code.jquery.com/ui/1.13/jquery-ui.js"></script>
+<script src="https://code.jquery.com/color/jquery.color-2.2.0.js"></script>
+
+<script src="/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+<script src="/webjars/sockjs-client/1.5.1/sockjs.min.js"></script>
+<script src="/webjars/stomp-websocket/2.3.4/stomp.min.js"></script>
+
+<script th:src="@{/js/color-modes.js}"></script>
+<script th:src="@{/js/main.js}"></script>
+
+</body>
+</html>

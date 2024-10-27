@@ -18,10 +18,7 @@ aliquet libero eget facilisis. Donec gravida sapien dui. Interdum et malesuada f
 
 | Property  | Description                          | Type       | Constraints |  
 |-----------|--------------------------------------|------------|-------------|
-| regions   | A collection of regions.             | Collection |             |  
 | version   | The CockroachDB version string.      | String     |             |  
 | available | Indicator for cluster availability.  | boolean    | Unique      |  
 | nodes     | A unique identifier for this client. | Collection | Unique      |  
 
-
-..

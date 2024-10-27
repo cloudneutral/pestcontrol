@@ -1,5 +1,5 @@
 #!/bin/bash
-# Whack-a-node Cluster Admin script
+# Pest Control Cluster Admin script
 
 #### DO NOT EDIT ####
 
@@ -30,11 +30,11 @@ installdir="${rootdir}/.binaries"
 certsdir="${rootdir}/.certs"
 datadir="${rootdir}/.datafiles"
 
-source "${scriptsdir}/core_settings.sh"
+source "${configdir}/settings.cfg"
+source "${configdir}/settings-${security_mode}.cfg"
+
 source "${scriptsdir}/core_commands.sh"
 source "${scriptsdir}/core_functions.sh"
-source "${scriptsdir}/common_commands.sh"
-source "${scriptsdir}/local_commands.sh"
 source "${scriptsdir}/local_functions.sh"
 
 core_getopt.sh $*

@@ -112,16 +112,26 @@ fn_print_green(){
 	echo -en "\n"
 }
 
-fn_continueYesNo() {
-  echo -e "$1"
-  while true; do
-      read -p "Do you want to continue (yn)?" yn
-      case ${yn} in
-          [Yy]* ) break;;
-          [Nn]* ) exit;;
-          * ) echo "Please answer yes or no.";;
-      esac
-  done
+fn_prompt_yes_no() {
+	local prompt="$1"
+	local initial="$2"
+
+	if [ "${initial}" == "Y" ]; then
+		prompt+=" [Y/n] "
+	elif [ "${initial}" == "N" ]; then
+		prompt+=" [y/N] "
+	else
+		prompt+=" [y/n] "
+	fi
+
+	while true; do
+		read -e -p  "${prompt}" -r yn
+		case "${yn}" in
+			[Yy]|[Yy][Ee][Ss]) return 0 ;;
+			[Nn]|[Nn][Oo]) return 1 ;;
+		*) echo -e "Please answer yes or no." ;;
+		esac
+	done
 }
 
 fn_fail_check(){

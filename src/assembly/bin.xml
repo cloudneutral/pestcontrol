@@ -20,6 +20,15 @@
         </fileSet>
 
         <fileSet>
+            <directory>${project.basedir}/.certs</directory>
+            <outputDirectory>.certs</outputDirectory>
+            <includes>
+                <include>**/*</include>
+            </includes>
+            <useDefaultExcludes>true</useDefaultExcludes>
+        </fileSet>
+
+        <fileSet>
             <directory>${project.basedir}/config</directory>
             <outputDirectory>config</outputDirectory>
             <includes>
@@ -37,6 +46,7 @@
             </includes>
             <useDefaultExcludes>true</useDefaultExcludes>
         </fileSet>
+
         <fileSet>
             <directory>${project.basedir}</directory>
             <outputDirectory>.</outputDirectory>
@@ -50,10 +60,10 @@
     <dependencySets>
         <dependencySet>
             <includes>
-                <include>${project.groupId}:whackanode:jar:${project.version}</include>
+                <include>${project.groupId}:pestcontrol:jar:${project.version}</include>
             </includes>
             <outputDirectory>.</outputDirectory>
-            <outputFileNameMapping>whackanode.jar</outputFileNameMapping>
+            <outputFileNameMapping>pestcontrol.jar</outputFileNameMapping>
         </dependencySet>
     </dependencySets>
 </assembly>

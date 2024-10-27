@@ -1,5 +1,4 @@
 .binaries/
-.certs/
 .datafiles/
 .idea/
 target/
@@ -10,7 +9,7 @@ target/
 *.csv
 *.pid
 .disruption.json
-whackanode.jar
+pestcontrol.jar
 .DS_Store
 .DS_Store?
 Thumbs.db

@@ -1,9 +1,18 @@
 #!/bin/bash
 
-fn_local_start() {
-  fn_print_dots "Starting node ${node} [--sql-addr=port=${host}:${sqlport} --locality=${zone}] in $SECURITY_MODE mode"
+fn_assert_binaries() {
+  if [ ! -f ${installdir}/cockroach ]; then
+     fn_print_error "No cockroach binary found! Run ./cluster-admin install"
+     exit 1
+  fi
+}
 
-  case "$SECURITY_MODE" in
+fn_local_start() {
+  fn_assert_binaries
+
+  fn_print_dots "Starting node ${node} [--sql-addr=port=${host}:${sqlport} --locality=${zone}] in $security_mode mode"
+
+  case "$security_mode" in
     secure)
       fn_fail_check ${installdir}/cockroach start \
       --locality=${zone} \
@@ -32,7 +41,7 @@ fn_local_start() {
       --insecure
       ;;
     *)
-      echo "Bad security mode: $SECURITY_MODE"
+      echo "Bad security mode: $security_mode"
       exit 1
   esac
 
@@ -139,13 +148,18 @@ fn_local_select_port() {
 
   node=0;
   ports=()
-  for zone in "${LOCALITY_ZONE[@]}"
+  for zone in "${locality_zone[@]}"
   do
       let node=($node+1)
       let offset=${node}-1
       let sqlport=${sqlportbase}+$offset
 
-      ports+=("${sqlport} [--sql-addr=port=${host}:${sqlport}, --locality=${zone}]")
+      local pid=$(ps -ef | grep "cockroach" | grep "sql-addr=${host}:${sqlport}" | awk '{print $2}')
+      if [ -z $pid ]; then
+        ports+=("${sqlport} [--sql-addr=port=${host}:${sqlport}, --locality=${zone}] - STOPPED")
+      else
+        ports+=("${sqlport} [--sql-addr=port=${host}:${sqlport}, --locality=${zone}] RUNNING (${pid})")
+      fi
   done
 
   select option in "${ports[@]}"; do
@@ -160,13 +174,18 @@ fn_local_select_rpc_port() {
 
   node=0;
   ports=()
-  for zone in "${LOCALITY_ZONE[@]}"
+  for zone in "${locality_zone[@]}"
   do
       let node=($node+1)
       let offset=${node}-1
       let rpcport=${rpcportbase}+$offset
 
-      ports+=("${rpcport} [--listen-addr=${host}:${rpcport}, --locality=${zone}]")
+      local pid=$(ps -ef | grep "cockroach" | grep "listen-addr=${host}:${rpcport}" | awk '{print $2}')
+      if [ -z $pid ]; then
+        ports+=("${rpcport} [--listen-addr=${host}:${rpcport}, --locality=${zone}] - STOPPED")
+      else
+        ports+=("${rpcport} [--listen-addr=${host}:${rpcport}, --locality=${zone}] - RUNNING")
+      fi
   done
 
   select option in "${ports[@]}"; do

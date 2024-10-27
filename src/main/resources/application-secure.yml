@@ -1,5 +1,0 @@
-spring:
-  datasource:
-    url: jdbc:postgresql://localhost:26257/defaultdb?ssl=true&sslmode=require&sslrootcert=${user.dir}/.certs/ca.crt&sslkey=${user.dir}/.certs/client.craig.key.pk8&sslcert=${user.dir}/.certs/client.craig.crt
-    username: craig
-    password: cockroach

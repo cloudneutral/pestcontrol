@@ -5,29 +5,28 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.4</version>
+        <version>3.3.5</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
-    <groupId>io.cockroachdb.whackanode</groupId>
-    <artifactId>whackanode</artifactId>
+    <groupId>io.cockroachdb.pestcontrol</groupId>
+    <artifactId>pestcontrol</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <properties>
-<!--        <skipTests>true</skipTests>-->
         <groups>unit-test</groups>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <spring.boot.version>3.3.4</spring.boot.version>
+        <spring.boot.version>3.3.5</spring.boot.version>
     </properties>
 
     <inceptionYear>2024</inceptionYear>
 
     <scm>
-        <connection>scm:git:https://github.com/cloudneutral/whack-a-node.git</connection>
-        <developerConnection>scm:git:https://github.com/cloudneutral/whack-a-node.git</developerConnection>
-        <url>https://github.com/cloudneutral/whack-a-node.git</url>
+        <connection>scm:git:https://github.com/cloudneutral/pestcontrol.git</connection>
+        <developerConnection>scm:git:https://github.com/cloudneutral/pestcontrol.git</developerConnection>
+        <url>https://github.com/cloudneutral/pestcontrol.git</url>
         <tag>HEAD</tag>
     </scm>
 
@@ -49,14 +48,14 @@
 
     <issueManagement>
         <system>GitHub</system>
-        <url>https://github.com/cloudneutral/whack-a-node/issues</url>
+        <url>https://github.com/cloudneutral/pestcontrol/issues</url>
     </issueManagement>
 
     <distributionManagement>
         <repository>
             <id>github</id>
             <name>GitHub Apache Maven Packages</name>
-            <url>https://maven.pkg.github.com/cloudneutral/whack-a-node</url>
+            <url>https://maven.pkg.github.com/cloudneutral/pestcontrol</url>
         </repository>
     </distributionManagement>
 
@@ -75,6 +74,10 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-jetty</artifactId>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -113,6 +116,28 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- For converting hypermedia link rel descriptions in markdown to HTML -->
+        <dependency>
+            <groupId>org.commonmark</groupId>
+            <artifactId>commonmark</artifactId>
+            <version>0.24.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.commonmark</groupId>
+            <artifactId>commonmark-ext-gfm-tables</artifactId>
+            <version>0.24.0</version>
+        </dependency>
+
+        <!-- Support -->
+        <dependency>
+            <groupId>com.jayway.jsonpath</groupId>
+            <artifactId>json-path</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5</artifactId>
+        </dependency>
+
         <!--  Data -->
         <dependency>
             <groupId>net.ttddyy</groupId>
@@ -127,6 +152,10 @@
         </dependency>
 
         <!-- Web UI -->
+        <dependency>
+            <groupId>org.thymeleaf.extras</groupId>
+            <artifactId>thymeleaf-extras-springsecurity6</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>webjars-locator-core</artifactId>
@@ -153,12 +182,6 @@
             <groupId>org.webjars</groupId>
             <artifactId>chartjs</artifactId>
             <version>4.4.3</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.webjars</groupId>
-            <artifactId>hal-explorer</artifactId>
-            <version>1.2.2</version>
             <scope>runtime</scope>
         </dependency>
 
@@ -259,7 +282,7 @@
         </profile>
 
         <profile>
-            <id>clean-hard</id>
+            <id>clean-deep</id>
             <build>
                 <plugins>
                     <plugin>
@@ -269,9 +292,6 @@
                             <filesets>
                                 <fileset>
                                     <directory>${basedir}/.binaries</directory>
-                                </fileset>
-                                <fileset>
-                                    <directory>${basedir}/.certs</directory>
                                 </fileset>
                                 <fileset>
                                     <directory>${basedir}/.datafiles</directory>
