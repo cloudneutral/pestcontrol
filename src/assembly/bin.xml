@@ -26,6 +26,7 @@
                 <include>**/*</include>
             </includes>
             <useDefaultExcludes>true</useDefaultExcludes>
+            <fileMode>0700</fileMode>
         </fileSet>
 
         <fileSet>

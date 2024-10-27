@@ -17,10 +17,11 @@
 * [Configuration](#configuration)
   * [Application](#application)
   * [Clusters](#clusters)
-    * [DataSource Properties](#datasource-properties)
+  * [DataSource Properties](#datasource-properties)
   * [Local Cluster Configuration](#local-cluster-configuration)
 * [Running](#running)
   * [Local Cluster Management](#local-cluster-management)
+    * [Remarks](#remarks)
     * [Shutdown](#shutdown)
 * [Appendix: Configuration Files](#appendix-configuration-files)
 <!-- TOC -->
@@ -123,9 +124,8 @@ packaged TAR.GZ assembly artifact.
 # Installing
 
 If you prefer to use a packaged artifact (release or snapshot) rather than building, 
-see [GitHub Packages](https://github.com/cloudneutral/pestcontrol/packages/2285983?version=1.0.0-SNAPSHOT).
-
-Scroll to the latest `TAR.GZ` file and copy the download URL, then run:
+see [GitHub Packages](https://github.com/orgs/cloudneutral/packages?repo_name=pestcontrol). Scroll to the latest `TAR.GZ` file and copy+paste the download URL
+as described:
 
     curl -o pestcontrol.tar.gz <paste-url-here>
     tar xvf pestcontrol.tar.gz && cd pestcontrol
@@ -221,7 +221,7 @@ Collection of cluster definitions.
 | admin-url              | No       | -               | Base URL for the Cluster API which is typically the regional/local cluster load balancer endpoint.                                             |
 | data-source-properties | No       | -               | Data source connection parameters.                                                                                                             |
 
-### DataSource Properties
+## DataSource Properties
 
 The JDBC datasource configuration for querying node status and running workloads.
 
@@ -253,26 +253,38 @@ Start the app in the background with:
     
     ./cluster-admin start-service
 
-or
+Other alternative:
 
-    java -jar target/pestcontrol.jar
+    ln -sf target/pestcontrol-<version>.jar pestcontrol.jar
+    java -jar pestcontrol.jar
 
 Now you can access the application via http://localhost:9090 and login to the cluster of choice.
 
 ## Local Cluster Management
 
 This section only apply if you intend to install and operate a local, 
-secure or insecure cluster.
+secure or insecure cluster. The default security mode is `secure` using
+self-signed CA certificates and keys in `.certs` including the PKCS12 truststore
+used by the web app. Edit `config/settings.cfg` and change `security_mode` to 
+either `secure|insecure`. 
 
-Edit `config/settings.cfg` and change `security_mode` to `secure|insecure`
-if needed.
+Then run:
 
+    chmod 0700 .certs/*.key
     ./cluster-admin install
     ./cluster-admin start-all
     ./cluster-admin start-lb
     ./cluster-admin init
     ./cluster-admin open
-   
+
+Once the cluster is up, you can either use the web UI or `cluster-admin` to
+kill and start nodes.
+
+### Remarks
+
+If you switch between the `secure` and `insecure` modes, re-run the `init` command to
+set proper SQL user roles and secrets.
+
 ### Shutdown
 
 To shut things down, run the inverse:
