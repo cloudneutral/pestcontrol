@@ -40,9 +40,11 @@ const chartP99 = new Chart(document.getElementById("chart-container-p99"), {
                 },
             },
         },
-        title: {
-            display: true,
-            text: 'P99.9 Latencies'
+        plugins: {
+            title: {
+                display: true,
+                text: 'P99.9 Latency (ms)'
+            },
         },
         responsive: true,
     },
@@ -70,9 +72,11 @@ const chartTPS = new Chart(document.getElementById("chart-container-tps"), {
                 },
             },
         },
-        title: {
-            display: true,
-            text: 'TpS'
+        plugins: {
+            title: {
+                display: true,
+                text: 'Transactions per second (TpS)'
+            },
         },
         responsive: true,
     },

@@ -4,7 +4,10 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.EnumSet;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.web.client.RestClientSsl;
+import org.springframework.boot.ssl.NoSuchSslBundleException;
 import org.springframework.boot.ssl.SslBundle;
 import org.springframework.boot.ssl.SslBundles;
 import org.springframework.boot.web.client.ClientHttpRequestFactories;
@@ -21,6 +24,8 @@ import io.cockroachdb.pestcontrol.service.ServerErrorException;
 
 @Configuration
 public class RestClientConfiguration {
+    private final Logger logger = LoggerFactory.getLogger(getClass());
+
     @Bean
     public RestClientProvider restClientProvider(SslBundles sslBundles, RestClientSsl ssl) {
         return clusterProperties -> EnumSet.of(ClusterType.local_secure, ClusterType.remote_secure)
@@ -30,7 +35,13 @@ public class RestClientConfiguration {
 
     @Bean
     public RestClient sslRestClient(SslBundles sslBundles, RestClientSsl ssl) {
-        final SslBundle sslBundle = sslBundles.getBundle("pestcontrol");
+        final SslBundle sslBundle;
+        try {
+            sslBundle = sslBundles.getBundle("pestcontrol");
+        } catch (NoSuchSslBundleException e) {
+            logger.warn("Fallback to default RestClient (insecure mode): " + e);
+            return defaultRestClient();
+        }
 
         ClientHttpRequestFactory requestFactory = ClientHttpRequestFactories
                 .get(ClientHttpRequestFactorySettings.DEFAULTS

@@ -13,14 +13,14 @@ spring:
     active: default
 
   ## Truststore for SSL/TLS access to secure clusters
-  ssl:
-    bundle:
-      jks:
-        pestcontrol:
-          truststore:
-            location: "file:.certs/pestcontrol.p12"
-            password: "secret"
-            type: "PKCS12"
+#  ssl:
+#    bundle:
+#      jks:
+#        pestcontrol:
+#          truststore:
+#            location: "file:.certs/pestcontrol.p12"
+#            password: "cockroach"
+#            type: "PKCS12"
 
   ## Common hikari connection pool settings for all cluster data sources
   datasource:

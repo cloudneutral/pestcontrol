@@ -12,20 +12,32 @@
 # https://docs.spring.io/spring-boot/appendix/application-properties/index.html
 ############################################################################################
 
+spring:
+
+## Truststore for SSL/TLS access to secure clusters
+# Uncomment the 'ssl' bundle section below if you intend to sign in to a secure, self-hosted CockroachDB cluster.
+# The truststore is created with the 'cluster-admin certs' command.
+
+#  ssl:
+#    bundle:
+#      jks:
+#        pestcontrol:
+#          truststore:
+#            location: "file:.certs/pestcontrol.p12"
+#            password: "cockroach"
+#            type: "PKCS12"
+
 ## HTTP server parameters
 server:
   port: 9090
 
 ## List of all available CockroachDB clusters
 #
-# Required properties:
-#
-#  cluster-id:   CockroachDB Cloud cluster ID or a unique string for a local cluster
 #  cluster-type: cloud_dedicated, local_secure or local_insecure
-#  api-key:      Only required for cloud_dedicated, see https://www.cockroachlabs.com/docs/cockroachcloud/managing-access#create-api-keys
-#  admin-url:    Base URL for the Cluster API, typically the regional/local cluster load balancer endpoint.
-#    data-source-properties:
-#      url:      The JDBC connection url
+#       api-key: Only required for cloud_dedicated, see https://www.cockroachlabs.com/docs/cockroachcloud/managing-access#create-api-keys
+#     admin-url: Base URL for the Cluster API, typically the regional/local cluster load balancer endpoint.
+#  data-source-properties:
+#           url: The JDBC connection url
 #      username: The SQL user name with ADMIN role
 #      password: The SQL user password
 application:
@@ -53,4 +65,4 @@ application:
       data-source-properties:
         url: "jdbc:postgresql://localhost:26257/defaultdb?sslmode=disable"
         username: "craig"
-        password: "cockroach"
+        password: ""

@@ -24,6 +24,7 @@ case "$security_mode" in
 
     ;;
   insecure)
+    echo "Login is a no-op in security mode: $security_mode"
     exitcode="0"
     ;;
   *)

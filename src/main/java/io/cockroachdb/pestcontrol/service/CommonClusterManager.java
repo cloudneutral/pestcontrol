@@ -1,6 +1,7 @@
 package io.cockroachdb.pestcontrol.service;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -32,6 +33,7 @@ import io.cockroachdb.pestcontrol.config.ClosableDataSource;
 import io.cockroachdb.pestcontrol.config.RestClientProvider;
 import io.cockroachdb.pestcontrol.model.ApplicationModel;
 import io.cockroachdb.pestcontrol.model.ClusterProperties;
+import io.cockroachdb.pestcontrol.model.ClusterType;
 import io.cockroachdb.pestcontrol.model.NodeModel;
 import io.cockroachdb.pestcontrol.model.nodes.NodeDetail;
 import io.cockroachdb.pestcontrol.model.nodes.NodeDetails;
@@ -197,6 +199,14 @@ public class CommonClusterManager implements ClusterManager {
     public String login(String clusterId, String userName, String password) {
         ClusterProperties clusterProperties = findClusterProperties(clusterId);
 
+        if (EnumSet.of(ClusterType.local_insecure, ClusterType.remote_insecure)
+                .contains(clusterProperties.getClusterType())) {
+            logger.info("Login redundant for cluster type: %s"
+                    .formatted(clusterProperties.getClusterType()));
+            sessionTokens.put(clusterId, "");
+            return "";
+        }
+
         MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
         map.add("username", userName);
         map.add("password", password);
@@ -213,7 +223,7 @@ public class CommonClusterManager implements ClusterManager {
 
         sessionTokens.put(clusterId, token);
 
-        logger.debug("Login command successful - received session token: " + token);
+        logger.debug("Login successful - received session token: " + token);
 
         return token;
     }

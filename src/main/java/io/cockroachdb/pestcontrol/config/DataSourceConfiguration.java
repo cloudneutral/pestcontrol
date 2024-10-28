@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
+import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
 import org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy;
 
 import com.zaxxer.hikari.HikariConfig;
@@ -95,6 +96,11 @@ public class DataSourceConfiguration {
     @ConfigurationProperties("spring.datasource.hikari")
     public HikariConfig hikariConfig() {
         return new HikariConfig();
+    }
+
+    @Bean
+    public PersistenceExceptionTranslationPostProcessor exceptionTranslation() {
+        return new PersistenceExceptionTranslationPostProcessor();
     }
 }
 

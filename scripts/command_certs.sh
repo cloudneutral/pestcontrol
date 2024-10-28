@@ -14,7 +14,7 @@ fi
 
 if [ ! -f ${certsdir}/pestcontrol.p12 ]; then
   fn_print_info "Creating new PKS12 truststore for CA cert"
-  keytool -import -alias pestcontrol -keystore ${certsdir}/pestcontrol.p12 -file ${certsdir}/ca.crt
+  keytool -import -noprompt -alias pestcontrol -storepass cockroach -keystore ${certsdir}/pestcontrol.p12 -file ${certsdir}/ca.crt
 fi
 
 # Shared node cert

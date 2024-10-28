@@ -263,16 +263,16 @@ Now you can access the application via http://localhost:9090 and login to the cl
 ## Local Cluster Management
 
 This section only apply if you intend to install and operate a local, 
-secure or insecure cluster. The default security mode is `secure` using
-self-signed CA certificates and keys in `.certs` including the PKCS12 truststore
-used by the web app. Edit `config/settings.cfg` and change `security_mode` to 
-either `secure|insecure`. 
+secure or insecure cluster. The default security mode is `insecure`.
+Edit `config/settings.cfg` and change `security_mode` to either `secure|insecure`.
+The secure mode will use self-signed CA certificates and keys in `.certs` including the PKCS12 truststore
+used by the web app.  
 
-Then run:
+Install CockroachDB, start some nodes, HAProxy and initialize the cluster:
 
-    chmod 0700 .certs/*.key
-    ./cluster-admin install
-    ./cluster-admin start-all
+    ./cluster-admin install  
+    ./cluster-admin certs
+    ./cluster-admin start-all (pick 1,2,3 to begin with)
     ./cluster-admin start-lb
     ./cluster-admin init
     ./cluster-admin open

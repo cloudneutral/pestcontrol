@@ -1,5 +1,6 @@
 .binaries/
 .datafiles/
+.certs/
 .idea/
 target/
 *.iml

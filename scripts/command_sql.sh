@@ -12,12 +12,12 @@ fi
 case "$security_mode" in
   secure)
     fn_fail_check ${installdir}/cockroach sql \
-    --host=${host} --port=${port} \
+    --host=${host} --port=${port} --user=${db_username} \
     --certs-dir=${certsdir}
     ;;
   insecure)
     fn_fail_check ${installdir}/cockroach sql \
-      --host=${host} --port=${port} \
+      --host=${host} --port=${port} --user=${db_username} \
       --insecure
     ;;
 esac

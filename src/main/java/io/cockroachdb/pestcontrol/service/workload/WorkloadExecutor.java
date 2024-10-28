@@ -89,7 +89,7 @@ public class WorkloadExecutor implements DisposableBean {
                     Thread.currentThread().interrupt();
                     break;
                 } catch (Exception e) {
-                    logger.error("Uncategorized error - bailing", e);
+                    logger.error("Uncategorized error - bailing out", e);
                     throw new UndeclaredThrowableException(e);
                 }
             }
