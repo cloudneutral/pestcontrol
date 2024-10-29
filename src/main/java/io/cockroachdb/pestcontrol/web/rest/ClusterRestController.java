@@ -1,6 +1,8 @@
 package io.cockroachdb.pestcontrol.web.rest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.RepresentationModel;
+import org.springframework.hateoas.mediatype.hal.HalModelBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,8 +35,24 @@ public class ClusterRestController {
     @Autowired
     private NodeModelAssembler nodeModelAssembler;
 
+    @GetMapping("/")
+    public ResponseEntity<MessageModel> index() {
+        MessageModel model = MessageModel.from("Cluster configuration index");
+        model.add(linkTo(methodOn(ClusterRestController.class)
+                .index())
+                .withSelfRel());
+
+        applicationModel.getClusterIds().forEach(clusterId -> {
+            model.add(linkTo(methodOn(ClusterRestController.class)
+                    .findCluster(clusterId))
+                    .withRel(LinkRelations.CLUSTER_LIST_REL));
+        });
+
+        return ResponseEntity.ok(model);
+    }
+
     @GetMapping("/{id}")
-    public ResponseEntity<ClusterModel> getCluster(@PathVariable("id") String id) {
+    public ResponseEntity<ClusterModel> findCluster(@PathVariable("id") String id) {
         ClusterProperties clusterProperties = applicationModel.getClusterPropertiesById(id);
 
         ClusterModel clusterModel = ClusterModel.available(clusterProperties);

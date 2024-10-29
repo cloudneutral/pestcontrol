@@ -32,8 +32,7 @@ public class AuthenticationController {
         model.addAttribute("clusterIds", applicationModel.getClusterIds());
         if (loginRequired) {
             model.addAttribute(WebUtils.MSG_INFO, WebUtils.getMessage("authentication.login.required"));
-        }
-        if (logoutSuccess) {
+        } else if (logoutSuccess) {
             model.addAttribute(WebUtils.MSG_INFO, WebUtils.getMessage("authentication.logout.success"));
         }
         if (loginError) {

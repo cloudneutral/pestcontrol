@@ -2,6 +2,8 @@ package io.cockroachdb.pestcontrol.util.timeseries;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -15,8 +17,37 @@ import io.cockroachdb.pestcontrol.util.NotThreadSafe;
 public class Metrics {
     private static final int MAX_AGE_SECONDS = 10;
 
+    public static Metrics empty() {
+        Metrics m = new Metrics();
+        m.time = Instant.now();
+        return m;
+    }
+
+    public static Metrics expired(Metrics from) {
+        Metrics m = new Metrics();
+        m.expired = true;
+        m.time = from.time;
+        m.success = from.getSuccess();
+        m.transientFail = from.getTransientFail();
+        m.nonTransientFail = from.getNonTransientFail();
+        return m;
+    }
+
+    private static double percentile(List<Double> sortedDurations, double percentile) {
+        if (percentile < 0 || percentile > 1) {
+            throw new IllegalArgumentException(">=0 N <=1");
+        }
+        if (!sortedDurations.isEmpty()) {
+            int index = (int) Math.ceil(percentile * sortedDurations.size());
+            return sortedDurations.get(index - 1);
+        }
+        return 0;
+    }
+
     @JsonIgnore
     private final LinkedList<Pair<Instant, Pair<Duration, Integer>>> fifoBuffer = new LinkedList<>();
+
+    private final LinkedList<Throwable> errors = new LinkedList<>();
 
     private final Instant startTime = Instant.now();
 
@@ -49,52 +80,27 @@ public class Metrics {
     private Metrics() {
     }
 
-    private static double percentile(List<Double> sortedDurations, double percentile) {
-        if (percentile < 0 || percentile > 1) {
-            throw new IllegalArgumentException(">=0 N <=1");
-        }
-        if (!sortedDurations.isEmpty()) {
-            int index = (int) Math.ceil(percentile * sortedDurations.size());
-            return sortedDurations.get(index - 1);
-        }
-        return 0;
-    }
-
-    public static Metrics empty() {
-        Metrics m = new Metrics();
-        m.time = Instant.now();
-        return m;
-    }
-
-    public static Metrics expired(Metrics from) {
-        Metrics m = new Metrics();
-        m.expired = true;
-        m.time = from.time;
-        m.success = from.getSuccess();
-        m.transientFail = from.getTransientFail();
-        m.nonTransientFail = from.getNonTransientFail();
-        return m;
-    }
-
-    public static Builder builder() {
-        return new Builder();
-    }
-
     @NotThreadSafe
     public void markSuccess(Duration duration) {
         success++;
         update(duration);
     }
 
-    /////////////////
 
+    /////////////////
     @NotThreadSafe
-    public void markFail(Duration duration, boolean isTransient) {
+    public void markFail(Duration duration, Throwable error, boolean isTransient) {
+        if (errors.size() > 10) {
+            errors.removeLast();
+        }
+        errors.addFirst(error);
+
         if (isTransient) {
             transientFail++;
         } else {
             nonTransientFail++;
         }
+
         update(duration);
     }
 
@@ -147,7 +153,10 @@ public class Metrics {
 
             opsPerMin = opsPerSec * 60;
         }
+    }
 
+    public List<Throwable> getLastErrors() {
+        return Collections.unmodifiableList(errors);
     }
 
     public double getExecutionTimeSeconds() {
@@ -204,6 +213,10 @@ public class Metrics {
 
     public double getP999() {
         return p999;
+    }
+
+    public static Builder builder() {
+        return new Builder();
     }
 
     public static final class Builder {

@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
 import io.cockroachdb.pestcontrol.util.timeseries.Metrics;
 
 @Component
-public class WorkloadExecutor implements DisposableBean {
+public class WorkerExecutor implements DisposableBean {
     /**
      * Only 40001 is safe to retry in terms of non-idempotent side effects (like INSERTs)
      */
@@ -40,7 +40,7 @@ public class WorkloadExecutor implements DisposableBean {
 
     private final ThreadPoolTaskExecutor threadPoolExecutor;
 
-    public WorkloadExecutor(@Autowired @Qualifier("asyncTaskExecutor")
+    public WorkerExecutor(@Autowired @Qualifier("asyncTaskExecutor")
                             ThreadPoolTaskExecutor threadPoolExecutor) {
         this.threadPoolExecutor = threadPoolExecutor;
     }
@@ -81,7 +81,7 @@ public class WorkloadExecutor implements DisposableBean {
                         logger.warn("Non-transient data access error: [%s]".formatted(e));
                     }
 
-                    metrics.markFail(Duration.between(callTime, Instant.now()), isTransient);
+                    metrics.markFail(Duration.between(callTime, Instant.now()), cause, isTransient);
 
                     backoffDelay(++fails);
                 } catch (InterruptedException e) {

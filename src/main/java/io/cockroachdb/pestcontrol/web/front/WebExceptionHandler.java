@@ -4,9 +4,11 @@ import java.time.Instant;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
@@ -23,14 +25,16 @@ public class WebExceptionHandler extends ResponseEntityExceptionHandler {
 //        if (AnnotationUtils.findAnnotation(exception.getClass(), ResponseStatus.class) != null) {
 //            throw exception;
 //        }
-
-        Object status = request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
-
-        HttpStatus httpStatus;
-        if (status != null) {
-            httpStatus = HttpStatus.valueOf(Integer.parseInt(status.toString()));
+        HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+        ;
+        ResponseStatus responseStatus = AnnotationUtils.findAnnotation(exception.getClass(), ResponseStatus.class);
+        if (responseStatus != null) {
+            httpStatus = responseStatus.value();
         } else {
-            httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+            Object status = request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
+            if (status != null) {
+                httpStatus = HttpStatus.valueOf(Integer.parseInt(status.toString()));
+            }
         }
 
         if (httpStatus.is5xxServerError()) {

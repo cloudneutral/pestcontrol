@@ -16,23 +16,20 @@ import io.cockroachdb.pestcontrol.AbstractIntegrationTest;
 import io.cockroachdb.pestcontrol.domain.ProfileEntity;
 import io.cockroachdb.pestcontrol.repository.ProfileRepository;
 import io.cockroachdb.pestcontrol.repository.JdbcProfileRepository;
-import io.cockroachdb.pestcontrol.domain.WorkloadType;
-import io.cockroachdb.pestcontrol.service.workload.ProfileWorkloads;
+import io.cockroachdb.pestcontrol.service.workload.WorkerType;
 
 public class ProfileWorkloadsTest extends AbstractIntegrationTest {
-    private ProfileWorkloads profileWorkloads;
-
     private ProfileRepository profileRepository;
+
+    private DataSource dataSource;
 
     @BeforeAll
     public void setupTestOnce() {
-        DataSource dataSource = applicationModel.getDataSource("integration-test");
+        this.dataSource = applicationModel.getDataSource("integration-test");
 
         logger.info("Connected to: %s".formatted(
                 new JdbcTemplate(dataSource)
                         .queryForObject("select version()", String.class)));
-
-        this.profileWorkloads = new ProfileWorkloads(dataSource);
 
         this.profileRepository = new JdbcProfileRepository(dataSource);
         this.profileRepository.deleteAll();
@@ -43,7 +40,8 @@ public class ProfileWorkloadsTest extends AbstractIntegrationTest {
     public void whenStartingInsertWorkload_thenExpectRows() {
         List<ProfileEntity> before = profileRepository.findAll(65536);
 
-        Callable<?> action = profileWorkloads.createWorkloadAction(WorkloadType.profile_insert);
+        Callable<?> action = WorkerType.profile_insert
+                .createWorker(dataSource);
         IntStream.rangeClosed(1, 10).forEach(value -> {
             try {
                 action.call();
@@ -61,7 +59,8 @@ public class ProfileWorkloadsTest extends AbstractIntegrationTest {
     public void whenStartingBatchInsertWorkload_thenExpectRows() {
         List<ProfileEntity> before = profileRepository.findAll(65536);
 
-        Callable<?> action = profileWorkloads.createWorkloadAction(WorkloadType.profile_batch_insert);
+        Callable<?> action = WorkerType.profile_batch_insert
+                .createWorker(dataSource);
         IntStream.rangeClosed(1, 10).forEach(value -> {
             try {
                 action.call();
@@ -77,7 +76,8 @@ public class ProfileWorkloadsTest extends AbstractIntegrationTest {
     @Order(2)
     @Test
     public void whenStartingUpdateWorkload_thenExpectRowsAffected() {
-        Callable<?> action = profileWorkloads.createWorkloadAction(WorkloadType.profile_update);
+        Callable<?> action = WorkerType.profile_update
+                .createWorker(dataSource);
         IntStream.rangeClosed(1, 10).forEach(value -> {
             try {
                 action.call();
@@ -90,7 +90,8 @@ public class ProfileWorkloadsTest extends AbstractIntegrationTest {
     @Order(4)
     @Test
     public void whenStartingDeleteWorkload_thenExpectRowsAffected() {
-        Callable<?> action = profileWorkloads.createWorkloadAction(WorkloadType.profile_delete);
+        Callable<?> action = WorkerType.profile_delete
+                .createWorker(dataSource);
         IntStream.rangeClosed(1, 10).forEach(value -> {
             try {
                 action.call();
@@ -103,7 +104,8 @@ public class ProfileWorkloadsTest extends AbstractIntegrationTest {
     @Order(5)
     @Test
     public void whenStartingReadWorkload_thenExpectRows() {
-        Callable<?> action = profileWorkloads.createWorkloadAction(WorkloadType.profile_read);
+        Callable<?> action = WorkerType.profile_read
+                .createWorker(dataSource);
         IntStream.rangeClosed(1, 10).forEach(value -> {
             try {
                 action.call();
@@ -112,7 +114,8 @@ public class ProfileWorkloadsTest extends AbstractIntegrationTest {
             }
         });
 
-        Callable<?> action2 = profileWorkloads.createWorkloadAction(WorkloadType.profile_follower_read);
+        Callable<?> action2 = WorkerType.profile_follower_read
+                .createWorker(dataSource);
         IntStream.rangeClosed(1, 10).forEach(value -> {
             try {
                 action2.call();
@@ -125,7 +128,8 @@ public class ProfileWorkloadsTest extends AbstractIntegrationTest {
     @Order(5)
     @Test
     public void whenStartingScanWorkload_thenExpectRows() {
-        Callable<?> action = profileWorkloads.createWorkloadAction(WorkloadType.profile_scan);
+        Callable<?> action = WorkerType.profile_scan
+                .createWorker(dataSource);
         IntStream.rangeClosed(1, 10).forEach(value -> {
             try {
                 action.call();

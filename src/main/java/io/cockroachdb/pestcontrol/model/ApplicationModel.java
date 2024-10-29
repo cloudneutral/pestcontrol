@@ -14,10 +14,20 @@ import io.cockroachdb.pestcontrol.config.ClosableDataSource;
 @Component
 @ConfigurationProperties(prefix = "application")
 public class ApplicationModel {
+    private Toxiproxy toxiproxy;
+
     @Autowired
     protected Function<DataSourceProperties, ClosableDataSource> dataSourceFactory;
 
     private List<ClusterProperties> clusters = new ArrayList<>();
+
+    public Toxiproxy getToxiproxy() {
+        return toxiproxy;
+    }
+
+    public void setToxiproxy(Toxiproxy toxiproxy) {
+        this.toxiproxy = toxiproxy;
+    }
 
     public ClosableDataSource getDataSource(String clusterId) {
         return dataSourceFactory.apply(getClusterPropertiesById(clusterId).getDataSourceProperties());

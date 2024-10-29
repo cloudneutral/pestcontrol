@@ -16,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import io.cockroachdb.pestcontrol.domain.WorkerEntity;
-import io.cockroachdb.pestcontrol.domain.WorkloadType;
 import io.cockroachdb.pestcontrol.util.timeseries.Metrics;
 
 @Component
@@ -26,43 +25,44 @@ public class WorkloadManager {
     /**
      * Map cluster id to active workload workers.
      */
-    private final Map<String, ClusterWorkload> clusterWorkloads = new ConcurrentHashMap<>();
+    private final Map<String, WorkerRegistry> clusterWorkers = new ConcurrentHashMap<>();
 
     @Autowired
-    private WorkloadExecutor workloadExecutor;
+    private WorkerExecutor workerExecutor;
 
     public void updateDataPoints() {
-        clusterWorkloads.values()
+        clusterWorkers.values()
                 .parallelStream()
-                .forEach(ClusterWorkload::updateDataPoints);
+                .forEach(WorkerRegistry::updateDataPoints);
     }
 
     public void submitWorker(String clusterId,
                              Callable<?> action,
-                             WorkloadType workloadType,
+                             WorkerType workerType,
                              Duration duration) {
         final Instant stopTime = Instant.now().plus(duration);
 
         Metrics metrics = Metrics.empty();
 
-        Future<?> future = workloadExecutor.submit(
+        Future<?> future = workerExecutor.submit(
                 action,
                 metrics,
                 calls -> Instant.now().isBefore(stopTime));
 
         WorkerEntity workerEntity = new WorkerEntity(
+                clusterId,
                 monotonicIdGenerator.incrementAndGet(),
                 stopTime,
-                workloadType.getDisplayValue(),
+                workerType.getDisplayValue(),
                 future,
                 metrics);
 
-        clusterWorkloads.computeIfAbsent(clusterId, x -> new ClusterWorkload())
+        clusterWorkers.computeIfAbsent(clusterId, x -> new WorkerRegistry())
                 .addWorker(workerEntity);
     }
 
-    private ClusterWorkload clusterWorkload(String clusterId) {
-        return clusterWorkloads.computeIfAbsent(clusterId, x -> new ClusterWorkload());
+    private WorkerRegistry clusterWorkload(String clusterId) {
+        return clusterWorkers.computeIfAbsent(clusterId, x -> new WorkerRegistry());
     }
 
     /**

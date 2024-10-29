@@ -9,3 +9,5 @@ create table if not exists pc_user_profile
 
     primary key (id, version)
 );
+
+-- insert into pc_user_profile (payload, expire_at) values ('{}', current_timestamp());

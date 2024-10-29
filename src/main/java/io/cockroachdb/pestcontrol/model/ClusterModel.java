@@ -7,19 +7,16 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.springframework.hateoas.RepresentationModel;
-import org.springframework.hateoas.server.core.Relation;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import io.cockroachdb.pestcontrol.model.nodes.Locality;
-import io.cockroachdb.pestcontrol.web.rest.LinkRelations;
 
 /**
  * Representation model for a CockroachDB cluster composed by the locality
  * tiers region, zone and node.
  */
-@Relation(value = LinkRelations.CLUSTER_REL)
 @JsonPropertyOrder({"links", "embedded", "templates"})
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ClusterModel extends RepresentationModel<ClusterModel> {

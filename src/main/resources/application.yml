@@ -108,3 +108,6 @@ server:
 #############################
 application:
   scriptPath: ${user.dir}
+  toxiproxy:
+    host: localhost
+    port: 8474

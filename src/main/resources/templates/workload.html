@@ -57,7 +57,7 @@
                     <tbody>
                     <tr th:each="worker, iStat : ${workers}" th:id="${'row-' + worker.content.id}">
                         <td scope="row" th:if="${worker.hasLink('self')}">
-                            <a th:href="${worker.getLink('self').href}" th:text="${worker.content.title}"></a>
+                            <a th:href="${worker.getRequiredLink('self').href}" th:text="${worker.content.title}"></a>
                         </td>
                         <td scope="row" th:unless="${worker.hasLink('self')}" th:text="${worker.content.title}"></td>
                         <td th:text="${worker.content.id}"></td>
@@ -137,12 +137,12 @@
                         <label for="workload-type" class="col-form-label">Type of workload:</label>
                         <select th:field="*{workloadType}" id="workload-type" class="form-select"
                                 aria-label="Default select">
-                            <option th:each="wt : ${T(io.cockroachdb.pestcontrol.domain.WorkloadType).values()}"
+                            <option th:each="wt : ${T(io.cockroachdb.pestcontrol.service.workload.WorkerType).values()}"
                                     th:value="${wt}" th:text="${wt.displayValue}"></option>
                         </select>
 
                         <label for="workload-range" class="col-form-label">Number of workers (1-10):</label>
-                        <input th:field="*{workloadCount}"
+                        <input th:field="*{count}"
                                type="range" class="form-range" min="1" max="10" id="workload-range">
                     </div>
 

@@ -20,15 +20,15 @@ public class NodeModelAssembler extends RepresentationModelAssemblerSupport<Node
                 .getNode(resource.getClusterId(), resource.getId()))
                 .withSelfRel());
 
-        resource.add(linkTo(methodOn(NodeRestController.class)
-                .getNodeDetail(resource.getClusterId(), resource.getId()))
-                .withRel(LinkRelations.NODE_DETAIL_REL)
-                .withTitle("Node details and statistics"));
-
-        resource.add(linkTo(methodOn(NodeRestController.class)
-                .getNodeStatus(resource.getClusterId(), resource.getId()))
-                .withRel(LinkRelations.NODE_STATUS_REL)
-                .withTitle("Node status and liveness metrics"));
+//        resource.add(linkTo(methodOn(NodeRestController.class)
+//                .getNodeDetail(resource.getClusterId(), resource.getId()))
+//                .withRel(LinkRelations.NODE_DETAIL_REL)
+//                .withTitle("Node details and statistics"));
+//
+//        resource.add(linkTo(methodOn(NodeRestController.class)
+//                .getNodeStatus(resource.getClusterId(), resource.getId()))
+//                .withRel(LinkRelations.NODE_STATUS_REL)
+//                .withTitle("Node status and liveness metrics"));
 
         if ("true".equals(resource.getNodeStatus().getIsLive())) {
             if ("true".equals(resource.getNodeStatus().getIsAvailable())) {

@@ -6,34 +6,42 @@ import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import org.springframework.hateoas.server.core.Relation;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import io.cockroachdb.pestcontrol.util.TimeUtils;
 import io.cockroachdb.pestcontrol.util.timeseries.Metrics;
+import io.cockroachdb.pestcontrol.web.rest.LinkRelations;
+import jakarta.validation.constraints.NotNull;
 
-//@Relation(itemRelation = LinkRelations.WORKLOAD_FORM_REL,
-//        collectionRelation = LinkRelations.WORKLOAD_LIST_REL)
+@Relation(itemRelation = LinkRelations.WORKER_REL,
+        collectionRelation = LinkRelations.WORKER_LIST_REL)
 @JsonPropertyOrder({"links", "embedded", "templates"})
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class WorkerEntity extends AbstractEntity<Integer> {
+    private final String clusterId;
+
     private final Integer id;
 
     private final Instant stopTime;
 
     private final String title;
 
+    private final Metrics metrics;
+
     @JsonIgnore
     private final Future<?> future;
 
-    private final Metrics metrics;
-
-    public WorkerEntity(Integer id,
+    public WorkerEntity(String clusterId,
+                        Integer id,
                         Instant stopTime,
                         String title,
                         Future<?> future,
                         Metrics metrics) {
+        this.clusterId = clusterId;
         this.id = id;
         this.stopTime = stopTime;
         this.title = title;
@@ -41,8 +49,13 @@ public class WorkerEntity extends AbstractEntity<Integer> {
         this.metrics = metrics;
     }
 
+    @Override
     public Integer getId() {
         return id;
+    }
+
+    public @NotNull String getClusterId() {
+        return clusterId;
     }
 
     public Metrics getMetrics() {

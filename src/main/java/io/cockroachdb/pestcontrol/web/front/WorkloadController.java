@@ -9,6 +9,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.IntStream;
 
+import javax.sql.DataSource;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
@@ -30,36 +32,38 @@ import org.springframework.web.bind.annotation.SessionAttributes;
 import org.springframework.web.servlet.view.RedirectView;
 
 import io.cockroachdb.pestcontrol.domain.WorkerEntity;
-import io.cockroachdb.pestcontrol.domain.WorkloadType;
 import io.cockroachdb.pestcontrol.model.ApplicationModel;
 import io.cockroachdb.pestcontrol.model.ClusterModel;
-import io.cockroachdb.pestcontrol.model.ClusterProperties;
-import io.cockroachdb.pestcontrol.service.workload.ProfileWorkloads;
+import io.cockroachdb.pestcontrol.service.workload.WorkerType;
 import io.cockroachdb.pestcontrol.service.workload.WorkloadManager;
 import io.cockroachdb.pestcontrol.util.timeseries.Metrics;
-import io.cockroachdb.pestcontrol.web.model.WorkloadForm;
+import io.cockroachdb.pestcontrol.web.model.WorkerForm;
 import io.cockroachdb.pestcontrol.web.push.TopicName;
 import io.cockroachdb.pestcontrol.web.rest.LinkRelations;
+import io.cockroachdb.pestcontrol.web.rest.WorkloadRestController;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @Controller
 @RequestMapping("/workload")
-@SessionAttributes(value = {"cluster", "profileWorkloads"})
+@SessionAttributes(value = {"cluster"})
 public class WorkloadController extends AbstractModelController {
     private static final SimpleRepresentationModelAssembler<WorkerEntity> workloadAssembler
             = new SimpleRepresentationModelAssembler<>() {
         @Override
         public void addLinks(EntityModel<WorkerEntity> resource) {
             WorkerEntity workload = resource.getContent();
+            resource.add(linkTo(methodOn(WorkloadRestController.class)
+                    .findWorker(workload.getClusterId(), workload.getId()))
+                    .withSelfRel());
             if (workload.isRunning()) {
                 resource.add(linkTo(methodOn(WorkloadController.class)
-                        .cancelWorkload(null, workload.getId()))
+                        .cancelWorker(null, workload.getId()))
                         .withRel(LinkRelations.CANCEL_REL));
             } else {
                 resource.add(linkTo(methodOn(WorkloadController.class)
-                        .deleteWorkload(null, workload.getId()))
+                        .deleteWorker(null, workload.getId()))
                         .withRel(LinkRelations.DELETE_REL));
             }
         }
@@ -86,13 +90,6 @@ public class WorkloadController extends AbstractModelController {
         messagePublisher.convertAndSend(TopicName.WORKLOAD_CHARTS_UPDATE);
     }
 
-    @ModelAttribute("profileWorkloads")
-    public ProfileWorkloads profileWorkloads() {
-        ClusterProperties clusterProperties = WebUtils.getAuthenticatedClusterProperties().orElseThrow(() ->
-                new AuthenticationCredentialsNotFoundException("Expected authentication token"));
-        return new ProfileWorkloads(applicationModel.getDataSource(clusterProperties.getClusterId()));
-    }
-
     @GetMapping
     public Callable<String> indexPage(
             @ModelAttribute(value = "cluster", binding = false) ClusterModel clusterModel,
@@ -100,36 +97,35 @@ public class WorkloadController extends AbstractModelController {
         WebUtils.getAuthenticatedClusterProperties().orElseThrow(() ->
                 new AuthenticationCredentialsNotFoundException("Expected authentication token"));
 
-        WorkloadForm workloadForm = new WorkloadForm();
-        workloadForm.setDuration("00:15");
-        workloadForm.setWorkloadType(WorkloadType.profile_insert);
+        WorkerForm workerForm = new WorkerForm();
+        workerForm.setDuration("00:15");
+        workerForm.setWorkloadType(WorkerType.profile_insert);
 
-        model.addAttribute("form", workloadForm);
+        model.addAttribute("form",
+                workerForm);
         model.addAttribute("workers",
-                workloadAssembler.toCollectionModel(workloadManager.getWorkers(clusterModel.getId()))
-        );
+                workloadAssembler.toCollectionModel(workloadManager.getWorkers(clusterModel.getId())));
         model.addAttribute("aggregatedMetrics",
-                workloadManager.getAggregatedMetrics(clusterModel.getId())
-        );
+                workloadManager.getAggregatedMetrics(clusterModel.getId()));
 
         return () -> "workload";
     }
 
     @PostMapping
-    public Callable<String> submitWorkloadForm(
+    public Callable<String> submitForm(
             @ModelAttribute(value = "cluster", binding = false) ClusterModel clusterModel,
-            @ModelAttribute(value = "profileWorkloads", binding = false) ProfileWorkloads profileWorkloads,
-            @ModelAttribute WorkloadForm form,
+            @ModelAttribute WorkerForm form,
             Model model) {
 
         final LocalTime time = LocalTime.parse(form.getDuration(), DateTimeFormatter.ofPattern("HH:mm"));
         final Duration duration = Duration.ofHours(time.getHour()).plusMinutes(time.getMinute());
+        final DataSource dataSource = applicationModel.getDataSource(clusterModel.getId());
 
-        IntStream.rangeClosed(1, form.getWorkloadCount())
+        IntStream.rangeClosed(1, form.getCount())
                 .forEach(value -> {
-                    final WorkloadType workloadType = form.getWorkloadType();
-                    final Callable<?> workloadAction = profileWorkloads.createWorkloadAction(workloadType);
-                    workloadManager.submitWorker(clusterModel.getId(), workloadAction, workloadType, duration);
+                    final WorkerType workerType = form.getWorkloadType();
+                    final Callable<?> workerAction = workerType.createWorker(dataSource);
+                    workloadManager.submitWorker(clusterModel.getId(), workerAction, workerType, duration);
                 });
 
         model.addAttribute("form", form);
@@ -138,30 +134,30 @@ public class WorkloadController extends AbstractModelController {
     }
 
     @PostMapping(value = "/cancelAll")
-    public RedirectView cancelAllWorkloads(
+    public RedirectView cancelAllWorkers(
             @ModelAttribute(value = "cluster", binding = false) ClusterModel clusterModel) {
         workloadManager.cancelAll(clusterModel.getId());
         return new RedirectView("/workload");
     }
 
     @PostMapping(value = "/deleteAll")
-    public RedirectView deleteAllWorkloads(
+    public RedirectView deleteAllWorkers(
             @ModelAttribute(value = "cluster", binding = false) ClusterModel clusterModel) {
         workloadManager.deleteAll(clusterModel.getId());
         return new RedirectView("/workload");
     }
 
     @PostMapping(value = "/cancel/{id}")
-    public RedirectView cancelWorkload(
+    public RedirectView cancelWorker(
             @ModelAttribute(value = "cluster", binding = false) ClusterModel clusterModel,
             @PathVariable("id") Integer id) {
-        WorkerEntity workload = workloadManager.findById(clusterModel.getId(), id);
-        workload.cancel();
+        WorkerEntity worker = workloadManager.findById(clusterModel.getId(), id);
+        worker.cancel();
         return new RedirectView("/workload");
     }
 
     @PostMapping(value = "/delete/{id}")
-    public RedirectView deleteWorkload(
+    public RedirectView deleteWorker(
             @ModelAttribute(value = "cluster", binding = false) ClusterModel clusterModel,
             @PathVariable("id") Integer id) {
         workloadManager.deleteById(clusterModel.getId(), id);

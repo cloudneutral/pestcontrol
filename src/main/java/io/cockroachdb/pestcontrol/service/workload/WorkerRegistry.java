@@ -15,7 +15,7 @@ import io.cockroachdb.pestcontrol.util.timeseries.Metrics;
 /**
  * Manages background workers and metric data points for a single cluster.
  */
-public class ClusterWorkload {
+public class WorkerRegistry {
     private static final long samplePeriodSeconds = TimeUnit.MINUTES.toSeconds(5);
 
     private final List<WorkerEntity> workers = Collections.synchronizedList(new ArrayList<>());

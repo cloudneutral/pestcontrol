@@ -22,7 +22,7 @@ public class ClusterModelAssembler extends RepresentationModelAssemblerSupport<C
     @Override
     public ClusterModel toModel(ClusterModel resource) {
         resource.add(linkTo(methodOn(ClusterRestController.class)
-                .getCluster(resource.getId()))
+                .findCluster(resource.getId()))
                 .withSelfRel());
         resource.add(linkTo(methodOn(NodeRestController.class)
                 .listNodes(resource.getId()))
@@ -52,7 +52,7 @@ public class ClusterModelAssembler extends RepresentationModelAssemblerSupport<C
 
                 resource.add(linkTo(methodOn(ClusterRestController.class)
                         .recoverRegion(resource.getId(), name))
-                        .withRel(LinkRelations.DISRUPT_REL)
+                        .withRel(LinkRelations.RECOVER_REL)
                         .withTitle("Recover from region disruption"));
             });
         }

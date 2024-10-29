@@ -21,7 +21,11 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.util.pattern.PathPatternParser;
 
-import io.cockroachdb.pestcontrol.web.model.WorkloadForm;
+import eu.rekawek.toxiproxy.model.ToxicDirection;
+import eu.rekawek.toxiproxy.model.ToxicType;
+import io.cockroachdb.pestcontrol.service.workload.WorkerType;
+import io.cockroachdb.pestcontrol.web.model.ToxicForm;
+import io.cockroachdb.pestcontrol.web.model.WorkerForm;
 import io.cockroachdb.pestcontrol.web.rest.LinkRelations;
 
 @EnableWebMvc
@@ -69,12 +73,17 @@ public class WebConfiguration implements WebMvcConfigurer {
                 .addResourceLocations("classpath:/static/js/");
         registry.addResourceHandler("/images/**")
                 .addResourceLocations("classpath:/static/images/");
+
+        if (!registry.hasMappingForPattern("/browser/**")) {
+            registry.addResourceHandler("/browser/**").addResourceLocations(
+                    "/webjars/hal-explorer/1.2.2/");
+        }
     }
 
     @Bean
     public CurieProvider defaultCurieProvider() {
         return new DefaultCurieProvider(LinkRelations.CURIE_NAMESPACE,
-                UriTemplate.of("/rels/{rel}"));
+                UriTemplate.of("/api/rels/{rel}"));
     }
 
     @Bean
@@ -84,11 +93,13 @@ public class WebConfiguration implements WebMvcConfigurer {
 
     @Bean
     public HalFormsConfiguration halFormsConfiguration() {
-        HalFormsConfiguration configuration = new HalFormsConfiguration();
-        // Doesnt work !?
-        configuration.withOptions(WorkloadForm.class,
-                "workloadType",
-                metadata -> HalFormsOptions.inline("insert_users"));
+        HalFormsConfiguration configuration = new HalFormsConfiguration()
+                .withOptions(WorkerForm.class, "workloadType", metadata ->
+                        HalFormsOptions.inline(WorkerType.values()))
+                .withOptions(ToxicForm.class, "toxicType", metadata ->
+                        HalFormsOptions.inline(ToxicType.values()))
+                .withOptions(ToxicForm.class, "toxicDirection", metadata ->
+                        HalFormsOptions.inline(ToxicDirection.values()));
         return configuration;
     }
 }
