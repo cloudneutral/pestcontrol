@@ -15,8 +15,8 @@ import java.util.function.Function;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import io.cockroachdb.pestcontrol.domain.WorkerEntity;
-import io.cockroachdb.pestcontrol.util.timeseries.Metrics;
+import io.cockroachdb.pestcontrol.schema.WorkerModel;
+import io.cockroachdb.pestcontrol.util.Metrics;
 
 @Component
 public class WorkloadManager {
@@ -49,7 +49,7 @@ public class WorkloadManager {
                 metrics,
                 calls -> Instant.now().isBefore(stopTime));
 
-        WorkerEntity workerEntity = new WorkerEntity(
+        WorkerModel workerModel = new WorkerModel(
                 clusterId,
                 monotonicIdGenerator.incrementAndGet(),
                 stopTime,
@@ -58,7 +58,7 @@ public class WorkloadManager {
                 metrics);
 
         clusterWorkers.computeIfAbsent(clusterId, x -> new WorkerRegistry())
-                .addWorker(workerEntity);
+                .addWorker(workerModel);
     }
 
     private WorkerRegistry clusterWorkload(String clusterId) {
@@ -94,12 +94,12 @@ public class WorkloadManager {
                 .getTimeSeriesAggregate();
     }
 
-    public List<WorkerEntity> getWorkers(String clusterId) {
+    public List<WorkerModel> getWorkers(String clusterId) {
         return clusterWorkload(clusterId)
                 .getWorkers();
     }
 
-    public WorkerEntity findById(String clusterId, Integer id) {
+    public WorkerModel findById(String clusterId, Integer id) {
         return clusterWorkload(clusterId)
                 .findWorkerById(id);
     }

@@ -7,10 +7,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-import io.cockroachdb.pestcontrol.domain.WorkerEntity;
+import io.cockroachdb.pestcontrol.schema.WorkerModel;
 import io.cockroachdb.pestcontrol.service.ResourceNotFoundException;
-import io.cockroachdb.pestcontrol.util.timeseries.DataPoint;
-import io.cockroachdb.pestcontrol.util.timeseries.Metrics;
+import io.cockroachdb.pestcontrol.util.DataPoint;
+import io.cockroachdb.pestcontrol.util.Metrics;
 
 /**
  * Manages background workers and metric data points for a single cluster.
@@ -18,16 +18,16 @@ import io.cockroachdb.pestcontrol.util.timeseries.Metrics;
 public class WorkerRegistry {
     private static final long samplePeriodSeconds = TimeUnit.MINUTES.toSeconds(5);
 
-    private final List<WorkerEntity> workers = Collections.synchronizedList(new ArrayList<>());
+    private final List<WorkerModel> workers = Collections.synchronizedList(new ArrayList<>());
 
     private final List<DataPoint<Integer>> dataPoints = Collections.synchronizedList(new ArrayList<>());
 
-    public void addWorker(WorkerEntity worker) {
+    public void addWorker(WorkerModel worker) {
         workers.add(worker);
     }
 
     public void deleteWorker(Integer id) {
-        WorkerEntity workload = findWorkerById(id);
+        WorkerModel workload = findWorkerById(id);
         if (workload.isRunning()) {
             throw new IllegalStateException("Workload is running: " + id);
         }
@@ -38,7 +38,7 @@ public class WorkerRegistry {
         workers.remove(workload);
     }
 
-    public WorkerEntity findWorkerById(Integer id) {
+    public WorkerModel findWorkerById(Integer id) {
         return workers
                 .stream()
                 .filter(worker -> Objects.equals(worker.getId(), id))
@@ -46,14 +46,14 @@ public class WorkerRegistry {
                 .orElseThrow(() -> new ResourceNotFoundException("No worker with id: " + id));
     }
 
-    public List<WorkerEntity> getWorkers() {
+    public List<WorkerModel> getWorkers() {
         return Collections.unmodifiableList(workers);
     }
 
     public void cancelWorkers() {
         workers.stream()
-                .filter(WorkerEntity::isRunning)
-                .forEach(WorkerEntity::cancel);
+                .filter(WorkerModel::isRunning)
+                .forEach(WorkerModel::cancel);
     }
 
     public void clearWorkers() {
@@ -73,7 +73,7 @@ public class WorkerRegistry {
 
     public Metrics getTimeSeriesAggregate() {
         List<Metrics> metrics = workers.stream()
-                .map(WorkerEntity::getMetrics).toList();
+                .map(WorkerModel::getMetrics).toList();
         return Metrics.builder()
                 .withTime(Instant.now())
                 .withMeanTimeMillis(metrics.stream()

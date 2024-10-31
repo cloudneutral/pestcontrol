@@ -8,19 +8,21 @@ import org.commonmark.Extension;
 import org.commonmark.ext.gfm.tables.TablesExtension;
 import org.commonmark.parser.Parser;
 import org.commonmark.renderer.html.HtmlRenderer;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.hateoas.Link;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.web.servlet.view.RedirectView;
 
-import io.cockroachdb.pestcontrol.model.ApplicationModel;
 import io.cockroachdb.pestcontrol.web.model.MessageModel;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -29,31 +31,24 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @RestController
 @RequestMapping("/api")
 public class IndexRestController {
-    @Autowired
-    private ApplicationModel applicationModel;
-
     @GetMapping
     public ResponseEntity<MessageModel> index() {
         MessageModel index = MessageModel.from("Pest Control Hypermedia API");
+
         index.add(linkTo(methodOn(getClass())
                 .index())
                 .withSelfRel()
                 .withTitle("Hypermedia API index"));
 
         index.add(linkTo(methodOn(ClusterRestController.class)
-                .index())
-                .withRel(LinkRelations.CLUSTER_REL)
-                .withTitle("Cluster configuration index"));
-
-        index.add(linkTo(methodOn(WorkloadRestController.class)
-                .index())
-                .withRel(LinkRelations.WORKLOAD_INDEX_REL)
-                .withTitle("Cluster workload index"));
+                .getClusters())
+                .withRel(LinkRelations.CLUSTER_LIST_REL)
+                .withTitle("Cluster collection index"));
 
         index.add(linkTo(methodOn(ToxiproxyRestController.class)
                 .index())
-                .withRel(LinkRelations.TOXI_PROXY_CLIENT_REL)
-                .withTitle("Toxiproxy client"));
+                .withRel(LinkRelations.TOXI_PROXY_INDEX_REL)
+                .withTitle("Toxiproxy index"));
 
         index.add(Link.of(ServletUriComponentsBuilder.fromCurrentContextPath()
                         .pathSegment("actuator")
@@ -93,5 +88,25 @@ public class IndexRestController {
         // Hack!
         html = html.replace("<table", "<table class='table'");
         return new ModelAndView("rel", "html", html);
+    }
+
+    @GetMapping("/error")
+    public @ResponseBody ResponseEntity<MessageModel> errorOnGet() {
+        throw new FakeException("Fake exception!", new IOException("I/O disturbance!"));
+    }
+
+    @PutMapping("/error")
+    public ResponseEntity<MessageModel> errorOnPut() {
+        throw new FakeException("Fake exception!", new IOException("I/O disturbance!"));
+    }
+
+    @PostMapping("/error")
+    public ResponseEntity<MessageModel> errorOnPost() {
+        throw new FakeException("Fake exception!", new IOException("I/O disturbance!"));
+    }
+
+    @DeleteMapping("/error")
+    public ResponseEntity<MessageModel> errorOnDelete() {
+        throw new FakeException("Fake exception!", new IOException("I/O disturbance!"));
     }
 }

@@ -12,12 +12,13 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClient;
 
-import io.cockroachdb.pestcontrol.model.ClusterProperties;
-import io.cockroachdb.pestcontrol.model.ClusterType;
-import io.cockroachdb.pestcontrol.model.NodeModel;
-import io.cockroachdb.pestcontrol.model.disrupt.DisruptorSpecifications;
-import io.cockroachdb.pestcontrol.model.disrupt.RegionalDisruptorSpecification;
-import io.cockroachdb.pestcontrol.model.nodes.Locality;
+import io.cockroachdb.pestcontrol.schema.ClusterProperties;
+import io.cockroachdb.pestcontrol.schema.ClusterType;
+import io.cockroachdb.pestcontrol.schema.NodeModel;
+import io.cockroachdb.pestcontrol.schema.disrupt.DisruptorSpecifications;
+import io.cockroachdb.pestcontrol.schema.disrupt.RegionalDisruptorSpecification;
+import io.cockroachdb.pestcontrol.schema.nodes.Locality;
+import io.cockroachdb.pestcontrol.schema.nodes.Tier;
 
 @Component
 public class CloudDisruptionManager implements DisruptionManager {
@@ -88,11 +89,12 @@ public class CloudDisruptionManager implements DisruptionManager {
     }
 
     @Override
-    public void disruptRegion(ClusterProperties clusterProperties, String regionName) {
+    public void disruptLocality(ClusterProperties clusterProperties, Locality locality) {
         final RegionalDisruptorSpecification regionalDisruptorSpecification = new RegionalDisruptorSpecification();
         {
             regionalDisruptorSpecification.setIsWholeRegion(true);
-            regionalDisruptorSpecification.setRegionCode(regionName);
+            regionalDisruptorSpecification.setRegionCode(locality
+                    .findRegionTierValue().orElseThrow( () -> new UnsupportedOperationException("No region tier found in locality: " + locality)));
         }
 
         final DisruptorSpecifications disruptorSpecifications = new DisruptorSpecifications();
@@ -121,7 +123,7 @@ public class CloudDisruptionManager implements DisruptionManager {
     }
 
     @Override
-    public void recoverRegion(ClusterProperties clusterProperties, String regionName) {
+    public void recoverLocality(ClusterProperties clusterProperties, Locality locality) {
         String bearerToken = clusterProperties.getApiKey();
 
         ResponseEntity<String> responseEntity = RestClient.create()

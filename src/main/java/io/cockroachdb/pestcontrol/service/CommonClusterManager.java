@@ -1,6 +1,7 @@
 package io.cockroachdb.pestcontrol.service;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -29,17 +30,18 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jayway.jsonpath.JsonPath;
 
+import io.cockroachdb.pestcontrol.config.ApplicationProperties;
 import io.cockroachdb.pestcontrol.config.ClosableDataSource;
 import io.cockroachdb.pestcontrol.config.RestClientProvider;
-import io.cockroachdb.pestcontrol.model.ApplicationModel;
-import io.cockroachdb.pestcontrol.model.ClusterProperties;
-import io.cockroachdb.pestcontrol.model.ClusterType;
-import io.cockroachdb.pestcontrol.model.NodeModel;
-import io.cockroachdb.pestcontrol.model.nodes.NodeDetail;
-import io.cockroachdb.pestcontrol.model.nodes.NodeDetails;
-import io.cockroachdb.pestcontrol.model.status.NodeStatus;
 import io.cockroachdb.pestcontrol.repository.ClusterRepository;
 import io.cockroachdb.pestcontrol.repository.JdbcClusterRepository;
+import io.cockroachdb.pestcontrol.schema.ClusterProperties;
+import io.cockroachdb.pestcontrol.schema.ClusterType;
+import io.cockroachdb.pestcontrol.schema.NodeModel;
+import io.cockroachdb.pestcontrol.schema.nodes.Locality;
+import io.cockroachdb.pestcontrol.schema.nodes.NodeDetail;
+import io.cockroachdb.pestcontrol.schema.nodes.NodeDetails;
+import io.cockroachdb.pestcontrol.schema.status.NodeStatus;
 
 @Component
 public class CommonClusterManager implements ClusterManager {
@@ -49,7 +51,7 @@ public class CommonClusterManager implements ClusterManager {
             = new ConcurrentHashMap<>();
 
     @Autowired
-    private ApplicationModel applicationModel;
+    private ApplicationProperties applicationProperties;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -71,7 +73,7 @@ public class CommonClusterManager implements ClusterManager {
 //            = new AtomicReference<>(Optional.empty());
 
     protected ClusterProperties findClusterProperties(String clusterId) {
-        return applicationModel.getClusters()
+        return applicationProperties.getClusters()
                 .stream()
                 .filter(x -> x.getClusterId().equals(clusterId))
                 .findFirst()
@@ -91,28 +93,6 @@ public class CommonClusterManager implements ClusterManager {
             return login(clusterId, credentials.getFirst(), credentials.getSecond());
         }
         return sessionTokens.get(clusterId);
-    }
-
-    private List<NodeModel> doQueryNodes(String clusterId) {
-        ClusterProperties clusterProperties = findClusterProperties(clusterId);
-
-        List<NodeStatus> nodeStatusList = queryNodeStatus(clusterProperties);
-        List<NodeDetail> nodeDetailList = queryNodeDetails(clusterProperties);
-
-        List<NodeModel> nodeModels = new ArrayList<>();
-
-        nodeDetailList.forEach(nodeDetail -> nodeStatusList.stream()
-                .filter(nodeStatus -> nodeStatus.getId().equals(nodeDetail.getNodeId()))
-                .findFirst()
-                .ifPresentOrElse(nodeStatus -> {
-                    nodeModels.add(new NodeModel(clusterId, nodeDetail, nodeStatus));
-                }, () -> {
-                    nodeModels.add(new NodeModel(clusterId, nodeDetail, new NodeStatus()));
-                    logger.warn("Unable to pair node detail (id: %s) with node status"
-                            .formatted(nodeDetail.getNodeId()));
-                }));
-
-        return nodeModels;
     }
 
     private List<NodeStatus> queryNodeStatus(ClusterProperties clusterProperties) {
@@ -177,7 +157,7 @@ public class CommonClusterManager implements ClusterManager {
 
     @Override
     public List<String> getClusterIds() {
-        return applicationModel.getClusters()
+        return applicationProperties.getClusters()
                 .stream()
                 .map(ClusterProperties::getClusterId)
                 .toList();
@@ -193,6 +173,11 @@ public class CommonClusterManager implements ClusterManager {
         } catch (DataAccessException e) {
             throw new ServerErrorException("Unable to query cluster version", e);
         }
+    }
+
+    @Override
+    public ClusterType getClusterType(String clusterId) {
+        return applicationProperties.getClusterPropertiesById(clusterId).getClusterType();
     }
 
     @Override
@@ -271,21 +256,30 @@ public class CommonClusterManager implements ClusterManager {
 
     @Override
     public List<NodeModel> queryAllNodes(String clusterId) {
-        List<NodeModel> models = doQueryNodes(clusterId);
-//        this.cachedModels.set(Optional.of(models));
-        return models;
+        ClusterProperties clusterProperties = findClusterProperties(clusterId);
+
+        List<NodeStatus> nodeStatusList = queryNodeStatus(clusterProperties);
+        List<NodeDetail> nodeDetailList = queryNodeDetails(clusterProperties);
+
+        List<NodeModel> nodeModels = new ArrayList<>();
+
+        nodeDetailList.forEach(nodeDetail -> nodeStatusList.stream()
+                .filter(nodeStatus -> nodeStatus.getId().equals(nodeDetail.getNodeId()))
+                .findFirst()
+                .ifPresentOrElse(nodeStatus -> {
+                    nodeModels.add(new NodeModel(clusterId, nodeDetail, nodeStatus));
+                }, () -> {
+                    nodeModels.add(new NodeModel(clusterId, nodeDetail, new NodeStatus()));
+                    logger.warn("Unable to pair node detail (id: %s) with node status"
+                            .formatted(nodeDetail.getNodeId()));
+                }));
+
+        return nodeModels;
     }
 
     @Override
     public NodeModel queryNodeById(String clusterId, Integer id) {
-//        cachedModels.get().ifPresent(nodeModels ->
-//                logger.warn("Using cached model for node id %s".formatted(id)));
-//        return cachedModels.get().orElseGet(() -> doQueryNodes(clusterId))
-//                .stream()
-//                .filter(node -> node.getNodeDetail().getNodeId().equals(id))
-//                .findFirst()
-//                .orElseThrow(() -> new ResourceNotFoundException("No such node with ID: " + id));
-        return doQueryNodes(clusterId)
+        return queryAllNodes(clusterId)
                 .stream()
                 .filter(node -> node.getNodeDetail().getNodeId().equals(id))
                 .findFirst()
@@ -321,7 +315,7 @@ public class CommonClusterManager implements ClusterManager {
     }
 
     @Override
-    public void disruptRegion(String clusterId, String regionName) {
+    public void disruptLocality(String clusterId, String tiers) {
         final ClusterProperties clusterProperties = findClusterProperties(clusterId);
 
         DisruptionManager disruptionManager = disruptionManagers.stream()
@@ -330,11 +324,11 @@ public class CommonClusterManager implements ClusterManager {
                 .orElseThrow(() -> new IllegalStateException("No disruption manager for cluster type "
                                                              + clusterProperties.getClusterType()));
 
-        disruptionManager.disruptRegion(clusterProperties, regionName);
+        disruptionManager.disruptLocality(clusterProperties, Locality.fromTiers(tiers));
     }
 
     @Override
-    public void recoverRegion(String clusterId, String regionName) {
+    public void recoverLocality(String clusterId, String tiers) {
         final ClusterProperties clusterProperties = findClusterProperties(clusterId);
 
         DisruptionManager disruptionManager = disruptionManagers.stream()
@@ -343,6 +337,6 @@ public class CommonClusterManager implements ClusterManager {
                 .orElseThrow(() -> new IllegalStateException("No disruption manager for cluster type "
                                                              + clusterProperties.getClusterType()));
 
-        disruptionManager.recoverRegion(clusterProperties, regionName);
+        disruptionManager.recoverLocality(clusterProperties, Locality.fromTiers(tiers));
     }
 }

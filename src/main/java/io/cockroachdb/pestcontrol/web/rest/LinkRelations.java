@@ -27,7 +27,7 @@ public class LinkRelations {
 
     public static final String ADMIN_REL = "admin";
 
-    public static final String TOXI_PROXY_CLIENT_REL = "toxiproxy";
+    public static final String TOXI_PROXY_INDEX_REL = "toxiproxy";
 
     public static final String PROXY_REL = "proxy";
 
@@ -46,6 +46,10 @@ public class LinkRelations {
     public static final String WORKER_LIST_REL = "worker-list";
 
     public static final String WORKLOAD_INDEX_REL = "workload";
+
+    public static final String LOCALITY_REL = "locality";
+
+    public static final String LOCALITY_LIST_REL = "locality-list";
 
     // IANA standard link relations:
     // http://www.iana.org/assignments/link-relations/link-relations.xhtml

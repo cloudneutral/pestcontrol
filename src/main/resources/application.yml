@@ -65,7 +65,7 @@ spring:
   #############################
   mvc:
     problemdetails:
-      enabled: false
+      enabled: true
 #############################
 management:
   endpoints:
@@ -107,6 +107,9 @@ server:
 # Application specifics
 #############################
 application:
+  # -1 denotes VM host vCPUs * 4
+  threadPoolMaxSize: -1
+  # Base directory for cluster-admin script
   scriptPath: ${user.dir}
   toxiproxy:
     host: localhost

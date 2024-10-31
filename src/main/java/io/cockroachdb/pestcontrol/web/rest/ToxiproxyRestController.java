@@ -57,14 +57,6 @@ public class ToxiproxyRestController {
                     .andAffordance(afford(methodOn(ToxiproxyRestController.class).disableProxy(entity.getName())))
                     .andAffordance(afford(methodOn(ToxiproxyRestController.class).enableProxy(entity.getName())));
 
-//            if (entity.isEnabled()) {
-//                selfLink = selfLink
-//                        .andAffordance(afford(methodOn(ToxiproxyController.class).disableProxy(entity.getName())));
-//            } else {
-//                selfLink = selfLink
-//                        .andAffordance(afford(methodOn(ToxiproxyController.class).enableProxy(entity.getName())));
-//            }
-
             model.add(linkTo(methodOn(ToxiproxyRestController.class)
                     .findProxyToxics(entity.getName()))
                     .withRel(LinkRelations.TOXIC_LIST_REL));
@@ -73,8 +65,13 @@ public class ToxiproxyRestController {
         }
     };
 
-    private static final RepresentationModelAssembler<Toxic, ToxicModel> toxicResourceAssembler
-            = new RepresentationModelAssemblerSupport<>(ToxiproxyRestController.class, ToxicModel.class) {
+    private static final class ProxyToxicModelAssembler implements RepresentationModelAssembler<Toxic,ToxicModel> {
+        private final String toxic;
+
+        public ProxyToxicModelAssembler(String toxic) {
+            this.toxic = toxic;
+        }
+
         @NotNull
         @Override
         public ToxicModel toModel(Toxic entity) {
@@ -82,9 +79,17 @@ public class ToxiproxyRestController {
             resource.setName(entity.getName());
             resource.setStream(entity.getStream());
             resource.setToxicity(entity.getToxicity());
+
+            Link selfLink = linkTo(methodOn(ToxiproxyRestController.class)
+                    .findProxyToxic(toxic, entity.getName()))
+                    .withSelfRel()
+                    .andAffordance(afford(methodOn(ToxiproxyRestController.class)
+                            .deleteProxyToxic(toxic, entity.getName())));
+            resource.add(selfLink);
+
             return resource;
         }
-    };
+    }
 
     @Autowired
     private ToxiproxyClient toxiproxyClient;
@@ -97,22 +102,22 @@ public class ToxiproxyRestController {
                 .orElseThrow(() -> new NotFoundException("No such proxy with name: " + name));
     }
 
-    @GetMapping("/")
+    @GetMapping()
     public ResponseEntity<ClientModel> index() {
         try {
             ClientModel model = new ClientModel();
             model.setVersion(toxiproxyClient.version());
-
             model.add(linkTo(methodOn(ToxiproxyRestController.class)
                     .index())
                     .withSelfRel());
             model.add(linkTo(methodOn(ToxiproxyRestController.class)
                     .reset())
                     .withRel(LinkRelations.RESET_REL)
-                    .withTitle("Reset toxiproxy"));
+                    .withTitle("Reset proxies"));
             model.add(linkTo(methodOn(ToxiproxyRestController.class)
                     .findProxies())
-                    .withRel(LinkRelations.PROXY_LIST_REL));
+                    .withRel(LinkRelations.PROXY_LIST_REL)
+                    .withTitle("Collection of proxies"));
             return ResponseEntity.ok(model);
         } catch (IOException e) {
             throw new ToxiproxyAccessException("I/O exception retrieving client details", e);
@@ -222,7 +227,7 @@ public class ToxiproxyRestController {
         try {
             Proxy proxy = findProxyByName(name);
 
-            CollectionModel<ToxicModel> collectionModel = toxicResourceAssembler
+            CollectionModel<ToxicModel> collectionModel = new ProxyToxicModelAssembler(name)
                     .toCollectionModel(proxy.toxics().getAll());
 
             Links newLinks = collectionModel.getLinks().merge(Links.MergeMode.REPLACE_BY_REL,
@@ -244,14 +249,7 @@ public class ToxiproxyRestController {
             Proxy proxy = findProxyByName(name);
             Toxic theToxic = proxy.toxics().get(toxic);
 
-            ToxicModel model = toxicResourceAssembler.toModel(theToxic)
-                    .add(linkTo(methodOn(ToxiproxyRestController.class)
-                                    .findProxyToxic(proxy.getName(), theToxic.getName()))
-                                    .withSelfRel()
-                                    .andAffordance(afford(methodOn(ToxiproxyRestController.class)
-                                            .deleteProxyToxic(name, toxic)))
-//                            .andAffordance(afford(methodOn(ToxiproxyController.class).getToxicForm(name)))
-                    );
+            ToxicModel model = new ProxyToxicModelAssembler(name).toModel(theToxic);
 
             return ResponseEntity.ok(model);
         } catch (IOException e) {
@@ -318,13 +316,7 @@ public class ToxiproxyRestController {
                                 proxy.toxics().resetPeer(form.getName(), form.getToxicDirection(), form.getTimeout());
                     };
 
-            ToxicModel resource = toxicResourceAssembler.toModel(toxic);
-            resource.add(linkTo(methodOn(ToxiproxyRestController.class)
-                    .findProxyToxic(proxy.getName(), toxic.getName()))
-                    .withSelfRel()
-                    .andAffordance(afford(methodOn(ToxiproxyRestController.class)
-                            .deleteProxyToxic(proxy.getName(), toxic.getName())))
-            );
+            ToxicModel resource = new ProxyToxicModelAssembler(name).toModel(toxic);
 
             return ResponseEntity
                     .status(HttpStatus.CREATED)

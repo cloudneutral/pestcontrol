@@ -18,8 +18,8 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
-import io.cockroachdb.pestcontrol.model.ApplicationModel;
-import io.cockroachdb.pestcontrol.model.ClusterProperties;
+import io.cockroachdb.pestcontrol.config.ApplicationProperties;
+import io.cockroachdb.pestcontrol.schema.ClusterProperties;
 import io.cockroachdb.pestcontrol.service.ClusterManager;
 
 @Component
@@ -30,7 +30,7 @@ public class ClusterAuthenticationProvider implements AuthenticationProvider {
     private ClusterManager clusterManager;
 
     @Autowired
-    private ApplicationModel applicationModel;
+    private ApplicationProperties applicationProperties;
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
@@ -46,7 +46,7 @@ public class ClusterAuthenticationProvider implements AuthenticationProvider {
         String clusterId = authenticationDetails.getClusterId();
         Boolean useFileCredentials = authenticationDetails.getUseFileCredentials();
 
-        final ClusterProperties properties = applicationModel.getClusterPropertiesById(clusterId);
+        final ClusterProperties properties = applicationProperties.getClusterPropertiesById(clusterId);
         authenticationDetails.setClusterProperties(properties);
 
         // Fallback to static config

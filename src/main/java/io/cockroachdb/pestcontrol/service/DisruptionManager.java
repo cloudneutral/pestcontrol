@@ -1,8 +1,9 @@
 package io.cockroachdb.pestcontrol.service;
 
-import io.cockroachdb.pestcontrol.model.ClusterProperties;
-import io.cockroachdb.pestcontrol.model.ClusterType;
-import io.cockroachdb.pestcontrol.model.NodeModel;
+import io.cockroachdb.pestcontrol.schema.ClusterProperties;
+import io.cockroachdb.pestcontrol.schema.ClusterType;
+import io.cockroachdb.pestcontrol.schema.NodeModel;
+import io.cockroachdb.pestcontrol.schema.nodes.Locality;
 
 public interface DisruptionManager {
     boolean supports(ClusterType clusterType);
@@ -11,7 +12,7 @@ public interface DisruptionManager {
 
     void recoverNode(ClusterProperties clusterProperties, NodeModel nodeModel);
 
-    void disruptRegion(ClusterProperties clusterProperties, String regionName);
+    void disruptLocality(ClusterProperties clusterProperties, Locality locality);
 
-    void recoverRegion(ClusterProperties clusterProperties, String regionName);
+    void recoverLocality(ClusterProperties clusterProperties, Locality locality);
 }

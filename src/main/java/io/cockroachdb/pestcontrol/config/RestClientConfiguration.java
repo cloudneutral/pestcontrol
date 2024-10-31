@@ -18,7 +18,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
-import io.cockroachdb.pestcontrol.model.ClusterType;
+import io.cockroachdb.pestcontrol.schema.ClusterType;
 import io.cockroachdb.pestcontrol.service.ClientErrorException;
 import io.cockroachdb.pestcontrol.service.ServerErrorException;
 

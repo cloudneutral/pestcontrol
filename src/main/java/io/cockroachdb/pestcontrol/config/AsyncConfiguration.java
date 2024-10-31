@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
@@ -29,7 +30,8 @@ import org.springframework.web.context.request.async.TimeoutCallableProcessingIn
 public class AsyncConfiguration implements AsyncConfigurer {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final int threadPoolSize = -1;
+    @Value("${application.threadPoolMaxSize}")
+    private int threadPoolMaxSize;
 
     @Override
     public AsyncTaskExecutor getAsyncExecutor() {
@@ -46,7 +48,7 @@ public class AsyncConfiguration implements AsyncConfigurer {
      */
     @Bean(name = "asyncTaskExecutor")
     public ThreadPoolTaskExecutor asyncTaskExecutor() {
-        int poolSize = threadPoolSize > 0 ? threadPoolSize : Runtime.getRuntime().availableProcessors() * 4;
+        int poolSize = threadPoolMaxSize > 0 ? threadPoolMaxSize : Runtime.getRuntime().availableProcessors() * 4;
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(poolSize);
         executor.setMaxPoolSize(poolSize * 2);

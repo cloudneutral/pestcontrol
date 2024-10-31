@@ -3,7 +3,6 @@ package io.cockroachdb.pestcontrol.web.model;
 import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.core.Relation;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import io.cockroachdb.pestcontrol.web.rest.LinkRelations;
@@ -11,7 +10,6 @@ import io.cockroachdb.pestcontrol.web.rest.LinkRelations;
 @Relation(value = LinkRelations.PROXY_REL,
         collectionRelation = LinkRelations.PROXY_LIST_REL)
 @JsonPropertyOrder({"links", "templates"})
-//@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ProxyModel extends RepresentationModel<ProxyModel> {
     private String path;
 

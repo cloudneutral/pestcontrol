@@ -2,14 +2,18 @@ package io.cockroachdb.pestcontrol.service;
 
 import java.util.List;
 
-import io.cockroachdb.pestcontrol.model.NodeModel;
-import io.cockroachdb.pestcontrol.model.nodes.NodeDetail;
-import io.cockroachdb.pestcontrol.model.status.NodeStatus;
+import io.cockroachdb.pestcontrol.schema.ClusterType;
+import io.cockroachdb.pestcontrol.schema.NodeModel;
+import io.cockroachdb.pestcontrol.schema.nodes.Locality;
+import io.cockroachdb.pestcontrol.schema.nodes.NodeDetail;
+import io.cockroachdb.pestcontrol.schema.status.NodeStatus;
 
 public interface ClusterManager {
     List<String> getClusterIds();
 
     String getClusterVersion(String clusterId);
+
+    ClusterType getClusterType(String clusterId);
 
     void setCredentialsHandler(CredentialsHandler credentialsHandler);
 
@@ -29,9 +33,9 @@ public interface ClusterManager {
 
     void disruptNode(String clusterId, Integer id);
 
-    void disruptRegion(String clusterId, String regionName);
+    void disruptLocality(String clusterId, String tiers);
 
     void recoverNode(String clusterId, Integer id);
 
-    void recoverRegion(String clusterId, String regionName);
+    void recoverLocality(String clusterId, String tiers);
 }

@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.WebApplicationType;
+import org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.data.jdbc.JdbcRepositoriesAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
@@ -26,7 +27,8 @@ import org.springframework.util.StringUtils;
 @SpringBootApplication(exclude = {
         JdbcRepositoriesAutoConfiguration.class,
         DataSourceAutoConfiguration.class,
-        SecurityAutoConfiguration.class
+        SecurityAutoConfiguration.class,
+        ManagementWebSecurityAutoConfiguration.class
 })
 public class Application implements ApplicationRunner {
     private static final Logger logger = LoggerFactory.getLogger(Application.class);

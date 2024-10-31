@@ -23,7 +23,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
-import io.cockroachdb.pestcontrol.util.timeseries.Metrics;
+import io.cockroachdb.pestcontrol.util.Metrics;
 
 @Component
 public class WorkerExecutor implements DisposableBean {

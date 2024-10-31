@@ -9,7 +9,6 @@ import eu.rekawek.toxiproxy.model.ToxicDirection;
 import eu.rekawek.toxiproxy.model.ToxicType;
 import jakarta.validation.constraints.NotNull;
 
-//@JsonPropertyOrder({"links", "embedded", "templates"})
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ToxicForm extends RepresentationModel<ToxicForm> {
     @NotNull

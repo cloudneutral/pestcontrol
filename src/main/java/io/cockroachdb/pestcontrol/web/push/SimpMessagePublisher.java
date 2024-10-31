@@ -25,12 +25,16 @@ public class SimpMessagePublisher {
         convertAndSend(topic, "");
     }
 
-    public <T> void convertAndSendLater(TopicName topic, Object payload) {
-        scheduledExecutorService.schedule(
-                () -> convertAndSend(topic, payload), SEND_DELAY_MS, TimeUnit.MILLISECONDS);
-    }
-
     public <T> void convertAndSendLater(TopicName topic) {
         convertAndSendLater(topic, "");
+    }
+
+    public <T> void convertAndSendLater(TopicName topic, Object payload) {
+        convertAndSendLater(topic, payload, SEND_DELAY_MS);
+    }
+
+    public <T> void convertAndSendLater(TopicName topic, Object payload, long delayMillis) {
+        scheduledExecutorService.schedule(
+                () -> convertAndSend(topic, payload), delayMillis, TimeUnit.MILLISECONDS);
     }
 }

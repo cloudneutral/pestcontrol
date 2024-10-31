@@ -4,8 +4,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import io.cockroachdb.pestcontrol.domain.ProfileEntity;
-
 public interface ProfileRepository {
     @Deprecated
     boolean isSchemaReady();

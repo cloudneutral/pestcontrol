@@ -55,23 +55,23 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr th:each="worker, iStat : ${workers}" th:id="${'row-' + worker.content.id}">
+                    <tr th:each="worker, iStat : ${workers}" th:id="${'row-' + worker.id}">
                         <td scope="row" th:if="${worker.hasLink('self')}">
-                            <a th:href="${worker.getRequiredLink('self').href}" th:text="${worker.content.title}"></a>
+                            <a th:href="${worker.getRequiredLink('self').href}" th:text="${worker.title}"></a>
                         </td>
-                        <td scope="row" th:unless="${worker.hasLink('self')}" th:text="${worker.content.title}"></td>
-                        <td th:text="${worker.content.id}"></td>
-                        <td th:text="${worker.content.remainingTime}" class="remaining-time"></td>
-                        <td th:text="${worker.content.metrics.p90}" class="p90"></td>
-                        <td th:text="${worker.content.metrics.p99}" class="p99"></td>
-                        <td th:text="${worker.content.metrics.p999}" class="p999"></td>
-                        <td th:text="${#numbers.formatDecimal(worker.content.metrics.opsPerSec,1,1)}"
+                        <td scope="row" th:unless="${worker.hasLink('self')}" th:text="${worker.title}"></td>
+                        <td th:text="${worker.id}"></td>
+                        <td th:text="${worker.remainingTime}" class="remaining-time"></td>
+                        <td th:text="${worker.metrics.p90}" class="p90"></td>
+                        <td th:text="${worker.metrics.p99}" class="p99"></td>
+                        <td th:text="${worker.metrics.p999}" class="p999"></td>
+                        <td th:text="${#numbers.formatDecimal(worker.metrics.opsPerSec,1,1)}"
                             class="opsPerSec"></td>
-                        <td th:text="${#numbers.formatDecimal(worker.content.metrics.opsPerMin,1,1)}"
+                        <td th:text="${#numbers.formatDecimal(worker.metrics.opsPerMin,1,1)}"
                             class="opsPerMin"></td>
-                        <td th:text="${worker.content.metrics.success}" class="success"></td>
-                        <td th:text="${worker.content.metrics.transientFail}" class="transientFail"></td>
-                        <td th:text="${worker.content.metrics.nonTransientFail}" class="nonTransientFail"></td>
+                        <td th:text="${worker.metrics.success}" class="success"></td>
+                        <td th:text="${worker.metrics.transientFail}" class="transientFail"></td>
+                        <td th:text="${worker.metrics.nonTransientFail}" class="nonTransientFail"></td>
 
                         <td scope="row">
                             <form method="POST" th:action="${worker.getRequiredLink('cancel').href}"

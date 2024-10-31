@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.cockroachdb.pestcontrol.model.NodeModel;
-import io.cockroachdb.pestcontrol.model.nodes.NodeDetail;
-import io.cockroachdb.pestcontrol.model.status.NodeStatus;
+import io.cockroachdb.pestcontrol.schema.NodeModel;
+import io.cockroachdb.pestcontrol.schema.nodes.NodeDetail;
+import io.cockroachdb.pestcontrol.schema.status.NodeStatus;
 import io.cockroachdb.pestcontrol.service.ClusterManager;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -28,7 +28,7 @@ public class NodeRestController {
     private ClusterManager clusterManager;
 
     @GetMapping("/{clusterId}/nodes")
-    public ResponseEntity<CollectionModel<NodeModel>> listNodes(
+    public ResponseEntity<CollectionModel<NodeModel>> getNodes(
             @PathVariable("clusterId") String clusterId) {
         return ResponseEntity.ok(nodeModelAssembler.toCollectionModel(
                 clusterManager.queryAllNodes(clusterId)));
@@ -65,16 +65,16 @@ public class NodeRestController {
     }
 
     @PostMapping("/{clusterId}/nodes/{id}/disrupt")
-    public ResponseEntity<NodeModel> disruptNode(@PathVariable("clusterId") String clusterId,
+    public ResponseEntity<Void> disruptNode(@PathVariable("clusterId") String clusterId,
                                                  @PathVariable("id") Integer id) {
         clusterManager.disruptNode(clusterId, id);
-        return getNode(clusterId, id);
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/{clusterId}/nodes/{id}/recover")
-    public ResponseEntity<NodeModel> recoverNode(@PathVariable("clusterId") String clusterId,
+    public ResponseEntity<Void> recoverNode(@PathVariable("clusterId") String clusterId,
                                                  @PathVariable("id") Integer id) {
         clusterManager.recoverNode(clusterId, id);
-        return getNode(clusterId, id);
+        return ResponseEntity.ok().build();
     }
 }

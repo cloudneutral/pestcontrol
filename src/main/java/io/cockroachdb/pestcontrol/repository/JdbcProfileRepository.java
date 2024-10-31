@@ -21,8 +21,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 
-import io.cockroachdb.pestcontrol.domain.ProfileEntity;
-
 public class JdbcProfileRepository implements ProfileRepository {
     public static final Calendar tzUTC = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
 

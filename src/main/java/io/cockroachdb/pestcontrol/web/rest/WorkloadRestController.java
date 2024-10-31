@@ -12,10 +12,7 @@ import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
-import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.Link;
 import org.springframework.hateoas.Links;
-import org.springframework.hateoas.server.SimpleRepresentationModelAssembler;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,11 +25,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.cockroachdb.pestcontrol.domain.WorkerEntity;
-import io.cockroachdb.pestcontrol.model.ApplicationModel;
+import io.cockroachdb.pestcontrol.config.ApplicationProperties;
+import io.cockroachdb.pestcontrol.schema.WorkerModel;
 import io.cockroachdb.pestcontrol.service.workload.WorkerType;
 import io.cockroachdb.pestcontrol.service.workload.WorkloadManager;
-import io.cockroachdb.pestcontrol.web.model.MessageModel;
 import io.cockroachdb.pestcontrol.web.model.WorkerForm;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.afford;
@@ -40,68 +36,21 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @RestController
-@RequestMapping("/api/workload")
+@RequestMapping("/api/cluster")
 public class WorkloadRestController {
-    private static final SimpleRepresentationModelAssembler<WorkerEntity> assembler
-            = new SimpleRepresentationModelAssembler<>() {
-        @Override
-        public void addLinks(EntityModel<WorkerEntity> resource) {
-            WorkerEntity entity = resource.getContent();
-
-            Link selfLink = linkTo(methodOn(WorkloadRestController.class)
-                    .findWorker(entity.getClusterId(), entity.getId()))
-                    .withSelfRel();
-
-            if (entity.isRunning()) {
-                selfLink = selfLink.andAffordance(afford(methodOn(WorkloadRestController.class)
-                        .cancelWorker(entity.getClusterId(), entity.getId())));
-
-                resource.add(linkTo(methodOn(WorkloadRestController.class)
-                        .cancelWorker(entity.getClusterId(), entity.getId()))
-                        .withRel(LinkRelations.CANCEL_REL));
-            } else {
-                selfLink = selfLink.andAffordance(afford(methodOn(WorkloadRestController.class)
-                        .deleteWorker(entity.getClusterId(), entity.getId())));
-
-                resource.add(linkTo(methodOn(WorkloadRestController.class)
-                        .deleteWorker(entity.getClusterId(), entity.getId()))
-                        .withRel(LinkRelations.DELETE_REL));
-            }
-
-            resource.add(selfLink);
-        }
-
-        @Override
-        public void addLinks(CollectionModel<EntityModel<WorkerEntity>> resources) {
-        }
-    };
-
     @Autowired
     private WorkloadManager workloadManager;
 
     @Autowired
-    private ApplicationModel applicationModel;
+    private ApplicationProperties applicationProperties;
 
-    @GetMapping("/")
-    public ResponseEntity<MessageModel> index() {
-        MessageModel model = MessageModel.from("Cluster workloads");
-        model.add(linkTo(methodOn(WorkloadRestController.class)
-                .index())
-                .withSelfRel());
+    @Autowired
+    private WorkerModelAssembler workerModelAssembler;
 
-        applicationModel.getClusterIds().forEach(clusterId -> {
-            model.add(linkTo(methodOn(WorkloadRestController.class)
-                    .findWorkers(clusterId))
-                    .withRel(LinkRelations.WORKER_LIST_REL));
-        });
-
-        return ResponseEntity.ok(model);
-    }
-
-    @GetMapping("/{clusterId}")
-    public ResponseEntity<CollectionModel<EntityModel<WorkerEntity>>> findWorkers(
+    @GetMapping("/{clusterId}/workers")
+    public ResponseEntity<CollectionModel<WorkerModel>> getWorkers(
             @PathVariable("clusterId") String clusterId) {
-        CollectionModel<EntityModel<WorkerEntity>> collectionModel = assembler
+        CollectionModel<WorkerModel> collectionModel = workerModelAssembler
                 .toCollectionModel(workloadManager.getWorkers(clusterId));
 
         collectionModel.add(linkTo(methodOn(WorkloadRestController.class)
@@ -109,7 +58,7 @@ public class WorkloadRestController {
                 .withRel(LinkRelations.FORM_REL));
 
         Links newLinks = collectionModel.getLinks().merge(Links.MergeMode.REPLACE_BY_REL,
-                linkTo(methodOn(WorkloadRestController.class).findWorkers(clusterId))
+                linkTo(methodOn(WorkloadRestController.class).getWorkers(clusterId))
                         .withSelfRel()
                         .andAffordance(afford(methodOn(WorkloadRestController.class)
                                 .newWorker(clusterId, null))));
@@ -117,27 +66,27 @@ public class WorkloadRestController {
         return ResponseEntity.ok(CollectionModel.of(collectionModel.getContent(), newLinks));
     }
 
-    @GetMapping(value = "/{clusterId}/worker/{id}")
-    public HttpEntity<EntityModel<WorkerEntity>> findWorker(
+    @GetMapping(value = "/{clusterId}/workers/{id}")
+    public HttpEntity<WorkerModel> getWorker(
             @PathVariable("clusterId") String clusterId,
             @PathVariable("id") Integer id) {
-        return ResponseEntity.ok(assembler.toModel(workloadManager.findById(clusterId, id)));
+        return ResponseEntity.ok(workerModelAssembler.toModel(workloadManager.findById(clusterId, id)));
     }
 
-    @PutMapping(value = "/{clusterId}/worker/{id}/cancel")
-    public HttpEntity<EntityModel<WorkerEntity>> cancelWorker(
+    @PutMapping(value = "/{clusterId}/workers/{id}/cancel")
+    public HttpEntity<WorkerModel> cancelWorker(
             @PathVariable("clusterId") String clusterId,
             @PathVariable("id") Integer id) {
-        WorkerEntity workload = workloadManager.findById(clusterId, id);
+        WorkerModel workload = workloadManager.findById(clusterId, id);
         if (workload.cancel()) {
-            return ResponseEntity.ok(assembler.toModel(workload));
+            return ResponseEntity.ok(workerModelAssembler.toModel(workload));
         } else {
             return ResponseEntity.status(HttpStatus.ACCEPTED)
-                    .body(assembler.toModel(workload));
+                    .body(workerModelAssembler.toModel(workload));
         }
     }
 
-    @DeleteMapping(value = "/{clusterId}/worker/{id}/delete")
+    @DeleteMapping(value = "/{clusterId}/workers/{id}/delete")
     public HttpEntity<Void> deleteWorker(
             @PathVariable("clusterId") String clusterId,
             @PathVariable("id") Integer id) {
@@ -149,7 +98,7 @@ public class WorkloadRestController {
         }
     }
 
-    @GetMapping(value = "/{clusterId}/worker")
+    @GetMapping(value = "/{clusterId}/workers/form")
     public HttpEntity<WorkerForm> getWorkerForm(@PathVariable("clusterId") String clusterId) {
         WorkerForm form = new WorkerForm();
         form.setWorkloadType(WorkerType.random_wait);
@@ -164,16 +113,16 @@ public class WorkloadRestController {
                 ));
     }
 
-    @PostMapping("/{clusterId}/worker")
-    public HttpEntity<CollectionModel<EntityModel<WorkerEntity>>> newWorker(
+    @PostMapping("/{clusterId}/workers")
+    public HttpEntity<CollectionModel<WorkerModel>> newWorker(
             @PathVariable("clusterId") String clusterId,
             @RequestBody WorkerForm form) {
 
         final LocalTime time = LocalTime.parse(form.getDuration(), DateTimeFormatter.ofPattern("HH:mm"));
         final Duration duration = Duration.ofHours(time.getHour()).plusMinutes(time.getMinute());
-        final DataSource dataSource = applicationModel.getDataSource(clusterId);
+        final DataSource dataSource = applicationProperties.getDataSource(clusterId);
 
-        List<WorkerEntity> entities = new ArrayList<>();
+        List<WorkerModel> entities = new ArrayList<>();
 
         IntStream.rangeClosed(1, form.getCount())
                 .forEach(value -> {
@@ -184,55 +133,6 @@ public class WorkloadRestController {
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(assembler.toCollectionModel(entities));
+                .body(workerModelAssembler.toCollectionModel(entities));
     }
-
-//    @GetMapping(value = "/data-points/p95")
-//    public List<Map<String, Object>> getDataPointsP95() {
-//        return getDataPoints(Metrics::getP95);
-//    }
-//
-//    @GetMapping(value = "/data-points/p99")
-//    public List<Map<String, Object>> getDataPointsP99() {
-//        return getDataPoints(Metrics::getP99);
-//    }
-//
-//    @GetMapping(value = "/data-points/tps")
-//    public List<Map<String, Object>> getDataPointsTPS() {
-//        return getDataPoints(Metrics::getOpsPerSec);
-//    }
-//
-//    private List<Map<String, Object>> getDataPoints(Function<Metrics, Double> mapper) {
-//        final List<Map<String, Object>> columnData = new ArrayList<>();
-//
-//        {
-//            final Map<String, Object> headerElement = new HashMap<>();
-//            List<Long> labels = workloadManager
-//                    .getTimeSeriesInterval()
-//                    .stream()
-//                    .map(Instant::toEpochMilli)
-//                    .toList();
-//            headerElement.put("data", labels.toArray());
-//            columnData.add(headerElement);
-//        }
-//
-//        workloadManager.getWorkloads().forEach(workload -> {
-//            Map<String, Object> dataElement = new HashMap<>();
-//
-//            List<Double> data = workloadManager
-//                    .getTimeSeriesValues(workload.getId())
-//                    .stream()
-//                    .filter(metric -> !metric.isExpired())
-//                    .map(mapper)
-//                    .toList();
-//
-//            dataElement.put("id", workload.getId());
-//            dataElement.put("name", "%s (%d)".formatted(workload.getTitle(), workload.getId()));
-//            dataElement.put("data", data.toArray());
-//
-//            columnData.add(dataElement);
-//        });
-//
-//        return columnData;
-//    }
 }

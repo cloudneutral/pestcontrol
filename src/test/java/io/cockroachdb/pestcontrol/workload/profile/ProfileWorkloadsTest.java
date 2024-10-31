@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import io.cockroachdb.pestcontrol.AbstractIntegrationTest;
-import io.cockroachdb.pestcontrol.domain.ProfileEntity;
+import io.cockroachdb.pestcontrol.repository.ProfileEntity;
 import io.cockroachdb.pestcontrol.repository.ProfileRepository;
 import io.cockroachdb.pestcontrol.repository.JdbcProfileRepository;
 import io.cockroachdb.pestcontrol.service.workload.WorkerType;
@@ -25,7 +25,7 @@ public class ProfileWorkloadsTest extends AbstractIntegrationTest {
 
     @BeforeAll
     public void setupTestOnce() {
-        this.dataSource = applicationModel.getDataSource("integration-test");
+        this.dataSource = applicationProperties.getDataSource("integration-test");
 
         logger.info("Connected to: %s".formatted(
                 new JdbcTemplate(dataSource)

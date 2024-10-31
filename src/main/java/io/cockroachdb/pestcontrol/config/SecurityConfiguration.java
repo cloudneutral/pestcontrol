@@ -10,15 +10,19 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.session.HttpSessionEventPublisher;
 
 import io.cockroachdb.pestcontrol.service.security.ApiAuthenticationEntryPoint;
+import io.cockroachdb.pestcontrol.service.security.ApiAuthenticationFilter;
 import io.cockroachdb.pestcontrol.service.security.ApiAuthenticationService;
 import io.cockroachdb.pestcontrol.service.security.ClusterAuthenticationDetails;
 import io.cockroachdb.pestcontrol.service.security.ClusterAuthenticationProvider;
@@ -46,7 +50,6 @@ public class SecurityConfiguration {
         return authenticationManagerBuilder.build();
     }
 
-/*
     @Bean
     @Order(1)
     public SecurityFilterChain apiSecurityFilterChain(HttpSecurity http) throws Exception {
@@ -55,8 +58,8 @@ public class SecurityConfiguration {
                 .cors(AbstractHttpConfigurer::disable)
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/cluster/**").authenticated()
-                        .requestMatchers("/api/workload/**").authenticated()
+//                        .requestMatchers("/api/cluster/**").authenticated()
+//                        .requestMatchers("/api/workload/**").authenticated()
                         .requestMatchers("/api/**").permitAll()
                         .anyRequest().permitAll())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -64,10 +67,9 @@ public class SecurityConfiguration {
                 .addFilterBefore(new ApiAuthenticationFilter(apiAuthenticationService), BasicAuthenticationFilter.class)
                 .build();
     }
-*/
 
     @Bean
-    @Order(1)
+    @Order(2)
     public SecurityFilterChain configureFilterChain(HttpSecurity http,
                                                     AuthenticationManager authenticationManager)
             throws Exception {

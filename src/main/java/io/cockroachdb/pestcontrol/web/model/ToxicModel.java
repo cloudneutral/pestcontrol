@@ -11,7 +11,6 @@ import io.cockroachdb.pestcontrol.web.rest.LinkRelations;
 @Relation(value = LinkRelations.TOXIC_REL,
         collectionRelation = LinkRelations.TOXIC_LIST_REL)
 @JsonPropertyOrder({"links", "templates"})
-//@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ToxicModel extends RepresentationModel<ToxicModel> {
     private String name;
 

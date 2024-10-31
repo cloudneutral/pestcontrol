@@ -2,7 +2,7 @@ package io.cockroachdb.pestcontrol.service;
 
 import java.util.List;
 
-import io.cockroachdb.pestcontrol.model.NodeModel;
+import io.cockroachdb.pestcontrol.schema.NodeModel;
 
 public interface ShellCommands {
     default List<String> disrupt(NodeModel nodeModel) {

@@ -93,13 +93,12 @@ public class WebConfiguration implements WebMvcConfigurer {
 
     @Bean
     public HalFormsConfiguration halFormsConfiguration() {
-        HalFormsConfiguration configuration = new HalFormsConfiguration()
+        return new HalFormsConfiguration()
                 .withOptions(WorkerForm.class, "workloadType", metadata ->
                         HalFormsOptions.inline(WorkerType.values()))
                 .withOptions(ToxicForm.class, "toxicType", metadata ->
                         HalFormsOptions.inline(ToxicType.values()))
                 .withOptions(ToxicForm.class, "toxicDirection", metadata ->
                         HalFormsOptions.inline(ToxicDirection.values()));
-        return configuration;
     }
 }

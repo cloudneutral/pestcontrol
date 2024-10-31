@@ -22,42 +22,43 @@
         <div class="container">
             <div class="alert alert-info d-flex align-items-center alert-dismissible fade show" role="alert">
                 <svg class="bi flex-shrink-0 me-2" role="img" aria-label="Info:" width="1em" height="1em"><use xlink:href="#info-fill"/></svg>
-                Cluster id: <a class="alert-link" th:href="${cluster.clusterProperties.adminUrl}"
-                               th:text="${cluster.clusterProperties.clusterId}">DB Console</a>
+                Cluster id: <a class="alert-link" th:href="${helper.clusterModel.getRequiredLink('admin').href}"
+                               th:text="${helper.id}">DB Console</a>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
 
             <div class="alert alert-warning" role="alert"
-                 th:unless="${cluster.isAvailable()}">
+                 th:unless="${helper.isAvailable()}">
                 <h4 class="alert-heading">Cluster is Unresponsive</h4>
                 <p>Unable to retrieve cluster node status. This can be for several reasons:</p>
                 <ul>
                     <li>There are not enough available nodes in the cluster, check the
-                        <a target="_blank" th:href="${cluster.getRequiredLink('admin')}">DB Console</a>.</li>
+                        <a target="_blank" th:href="${helper.clusterModel.getRequiredLink('admin')}">DB Console</a>.</li>
                     <li>You are using a local cluster and have not started any nodes. Run <code>./cluster-admin start-all</code>.</li>
                     <li>You are using a local cluster and have not started the load balancer. Run <code>./cluster-admin start-lb</code>.</li>
                 </ul>
                 <p>This page will automatically refresh.</p>
             </div>
 
-            <div th:each="locality: ${cluster.getLocalities(level)}">
-                <h4 th:text="${locality}"></h4>
+            <div th:each="locality: ${helper.clusterModel.getLocalities(level)}">
+                <h4 th:text="${locality.toTiers()}"></h4>
 
-                <div role="group" th:if="${cluster.hasLink('disrupt') or cluster.hasLink('recover')}">
-                    <form th:action="@{/cluster/region-action}" method="post">
-                        <input type="hidden" name="region-name" th:value="${locality.findRegionTierValue().get()}"/>
-
+                <div role="group" th:if="${locality.hasLink('disrupt') or locality.hasLink('recover')}">
+                    <form th:action="@{/cluster/locality-action}" method="post">
+                        <input type="hidden" name="locality" th:value="${locality.toTiers()}"/>
                         <input class="btn btn-sm btn-outline-danger" type="submit"
-                               name="region-action" value="Disrupt">
+                               name="action" value="Disrupt"
+                               th:if="${locality.hasLink('disrupt')}">
                         <input class="btn btn-sm btn-outline-info" type="submit"
-                               name="region-action" value="Recover">
+                               name="action" value="Recover"
+                               th:if="${locality.hasLink('recover')}">
                     </form>
                 </div>
 
                 <hr/>
 
                 <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3">
-                    <div th:each="node: ${cluster.getNodes(locality)}">
+                    <div th:each="node: ${helper.clusterModel.getNodes(locality.tiers)}">
                         <form th:action="@{/cluster/node-action}" method="post">
                             <input type="hidden" name="node-id" th:value="${node.getId()}"/>
 

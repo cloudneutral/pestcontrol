@@ -19,9 +19,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StreamUtils;
 
-import io.cockroachdb.pestcontrol.model.ClusterProperties;
-import io.cockroachdb.pestcontrol.model.ClusterType;
-import io.cockroachdb.pestcontrol.model.NodeModel;
+import io.cockroachdb.pestcontrol.schema.ClusterProperties;
+import io.cockroachdb.pestcontrol.schema.ClusterType;
+import io.cockroachdb.pestcontrol.schema.NodeModel;
+import io.cockroachdb.pestcontrol.schema.nodes.Locality;
 
 @Component
 public class LocalDisruptionManager implements DisruptionManager {
@@ -68,12 +69,12 @@ public class LocalDisruptionManager implements DisruptionManager {
     }
 
     @Override
-    public void disruptRegion(ClusterProperties clusterProperties, String regionName) {
+    public void disruptLocality(ClusterProperties clusterProperties, Locality locality) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public void recoverRegion(ClusterProperties clusterProperties, String regionName) {
+    public void recoverLocality(ClusterProperties clusterProperties, Locality locality) {
         throw new UnsupportedOperationException();
     }
 

@@ -1,19 +1,26 @@
 package io.cockroachdb.pestcontrol.web.rest;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.hateoas.RepresentationModel;
-import org.springframework.hateoas.mediatype.hal.HalModelBuilder;
+import org.springframework.hateoas.CollectionModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.cockroachdb.pestcontrol.model.ApplicationModel;
-import io.cockroachdb.pestcontrol.model.ClusterModel;
-import io.cockroachdb.pestcontrol.model.ClusterProperties;
-import io.cockroachdb.pestcontrol.model.NodeModel;
+import io.cockroachdb.pestcontrol.config.ApplicationProperties;
+import io.cockroachdb.pestcontrol.schema.ClusterModel;
+import io.cockroachdb.pestcontrol.schema.ClusterProperties;
+import io.cockroachdb.pestcontrol.schema.NodeModel;
+import io.cockroachdb.pestcontrol.schema.nodes.Locality;
 import io.cockroachdb.pestcontrol.service.ClusterManager;
 import io.cockroachdb.pestcontrol.web.model.MessageModel;
 
@@ -27,7 +34,7 @@ public class ClusterRestController {
     private ClusterManager clusterManager;
 
     @Autowired
-    private ApplicationModel applicationModel;
+    private ApplicationProperties applicationProperties;
 
     @Autowired
     private ClusterModelAssembler clusterModelAssembler;
@@ -35,51 +42,49 @@ public class ClusterRestController {
     @Autowired
     private NodeModelAssembler nodeModelAssembler;
 
-    @GetMapping("/")
-    public ResponseEntity<MessageModel> index() {
-        MessageModel model = MessageModel.from("Cluster configuration index");
-        model.add(linkTo(methodOn(ClusterRestController.class)
-                .index())
-                .withSelfRel());
+    @GetMapping()
+    public ResponseEntity<CollectionModel<ClusterModel>> getClusters() {
+        List<ClusterModel> clusterModels = new ArrayList<>();
 
-        applicationModel.getClusterIds().forEach(clusterId -> {
-            model.add(linkTo(methodOn(ClusterRestController.class)
-                    .findCluster(clusterId))
-                    .withRel(LinkRelations.CLUSTER_LIST_REL));
+        applicationProperties.getClusterIds().forEach(clusterId -> {
+            clusterModels.add(ClusterModel.from(applicationProperties.getClusterPropertiesById(clusterId)));
         });
 
-        return ResponseEntity.ok(model);
+        return ResponseEntity.ok(clusterModelAssembler.toCollectionModel(clusterModels)
+                .add(linkTo(methodOn(ClusterRestController.class)
+                        .getClusters())
+                        .withSelfRel()));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ClusterModel> findCluster(@PathVariable("id") String id) {
-        ClusterProperties clusterProperties = applicationModel.getClusterPropertiesById(id);
+    public ResponseEntity<ClusterModel> getCluster(@PathVariable("id") String id) {
+        ClusterProperties clusterProperties = applicationProperties.getClusterPropertiesById(id);
 
-        ClusterModel clusterModel = ClusterModel.available(clusterProperties);
-        clusterModel.setNodes(nodeModelAssembler.toCollectionModel(clusterManager.queryAllNodes(id)).getContent());
+        LocalityModelAssembler localityModelAssembler
+                = new LocalityModelAssembler(id, clusterProperties.getClusterType());
 
-        return ResponseEntity.ok(clusterModelAssembler.toModel(clusterModel));
+        final List<NodeModel> nodes = clusterManager.queryAllNodes(id);
+
+        ClusterModel model = ClusterModel.from(clusterProperties);
+        model.setNodes(nodeModelAssembler.toCollectionModel(nodes));
+        model.setLocalities(localityModelAssembler.toCollectionModel(nodeLocalities(nodes)));
+
+        return ResponseEntity.ok(clusterModelAssembler.toModel(model));
+    }
+
+    private Collection<Locality> nodeLocalities(List<NodeModel> models) {
+        Set<Locality> localities = new LinkedHashSet<>(); // keep insertion order
+        models.stream()
+                .map(NodeModel::getLocality)
+                .forEach(localities::add);
+        return localities;
     }
 
     @GetMapping("/{id}/version")
     public ResponseEntity<MessageModel> getVersion(@PathVariable("id") String id) {
-        MessageModel model = MessageModel
-                .from(clusterManager.getClusterVersion(id));
-        model.add(linkTo(methodOn(ClusterRestController.class)
-                .getVersion(id))
-                .withSelfRel());
-        return ResponseEntity.ok(model);
-    }
-
-    @PostMapping("/{id}/region/{name}/disrupt")
-    public ResponseEntity<NodeModel> disruptRegion(@PathVariable("id") String clusterId,
-                                                   @PathVariable("name") String regionName) {
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
-
-    @PostMapping("/{id}/region/{name}/recover")
-    public ResponseEntity<NodeModel> recoverRegion(@PathVariable("id") String clusterId,
-                                                   @PathVariable("name") String regionName) {
-        throw new UnsupportedOperationException("Not yet implemented");
+        return ResponseEntity.ok(MessageModel.from(clusterManager.getClusterVersion(id))
+                .add(linkTo(methodOn(ClusterRestController.class)
+                        .getVersion(id))
+                        .withSelfRel()));
     }
 }

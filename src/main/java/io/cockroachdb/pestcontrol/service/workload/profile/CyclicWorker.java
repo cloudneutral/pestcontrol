@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.sql.DataSource;
 
-import io.cockroachdb.pestcontrol.domain.ProfileEntity;
+import io.cockroachdb.pestcontrol.repository.ProfileEntity;
 
 public abstract class CyclicWorker<T> extends AbstractWorker<T> {
     private final AtomicReference<Optional<ProfileEntity>> latestEntity
