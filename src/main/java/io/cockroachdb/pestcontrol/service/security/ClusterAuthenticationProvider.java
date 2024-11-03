@@ -67,8 +67,8 @@ public class ClusterAuthenticationProvider implements AuthenticationProvider {
 
             return new UsernamePasswordAuthenticationToken(principal, null, principal.getAuthorities());
         } catch (Exception exception) {
-            logger.warn("Authentication failed: " + exception.getMessage());
-            throw new AuthenticationServiceException("", exception);
+            logger.warn("Authentication failed", exception);
+            throw new AuthenticationServiceException("Authentication failed", exception);
         }
     }
 

@@ -12,12 +12,11 @@
 # https://docs.spring.io/spring-boot/appendix/application-properties/index.html
 ############################################################################################
 
-spring:
-
 ## Truststore for SSL/TLS access to secure clusters
-# Uncomment the 'ssl' bundle section below if you intend to sign in to a secure, self-hosted CockroachDB cluster.
+# Uncomment the section below if you intend to sign in to a secure, self-hosted CockroachDB cluster.
 # The truststore is created with the 'cluster-admin certs' command.
 
+#spring:
 #  ssl:
 #    bundle:
 #      jks:
@@ -28,11 +27,12 @@ spring:
 #            type: "PKCS12"
 
 ## HTTP server parameters
-server:
-  port: 9090
+#server:
+#  port: 9090
 
 ## List of all available CockroachDB clusters
 #
+#     cluster-id: Either a CockroachDB cloud cluster ID any name for other cluster types
 #  cluster-type: cloud_dedicated, local_secure or local_insecure
 #       api-key: Only required for cloud_dedicated, see https://www.cockroachlabs.com/docs/cockroachcloud/managing-access#create-api-keys
 #     admin-url: Base URL for the Cluster API, typically the regional/local cluster load balancer endpoint.
@@ -41,13 +41,14 @@ server:
 #      username: The SQL user name with ADMIN role
 #      password: The SQL user password
 application:
+  # Examples below
   clusters:
     - cluster-id: "97a73235-fa45-4b4d-a229-f5efd52168ba"
       cluster-type: cloud_dedicated
       api-key: "<private-key>"
       admin-url: "https://admin-odin-qzx.cockroachlabs.cloud:8080"
       data-source-properties:
-        url: "jdbc:postgresql://kai-odin-qzx.aws-eu-north-1.cockroachlabs.cloud:26257/defaultdb?sslmode=require"
+        url: "jdbc:postgresql://odin-qzx.aws-eu-north-1.cockroachlabs.cloud:26257/defaultdb?sslmode=require"
         username: "craig"
         password: "cockroach"
 

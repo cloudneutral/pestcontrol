@@ -27,11 +27,11 @@
             <div sec:authorize="!isAuthenticated()">
                 <p class="lead mb-4">
                     Using this tool you can observe the status of a CockroachDB
-                    cluster and cause disruption by killing individual nodes,
-                    zones or entire regions and then recover.</p>
+                    cluster and cause chaos by killing individual nodes,
+                    zones or entire regions and then recover. For local clusters, you can
+                    also use Toxiproxy to create simulated network issues.</p>
                 <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mb-5">
                     <a class="btn btn-lg btn-primary" th:href="@{/login}">[[#{navigation.login}]]</a>
-                    <a class="btn btn-lg btn-tertiary" th:href="@{/proxy}">[[#{navigation.cluster.toxiproxy}]]</a>
                 </div>
             </div>
             <div sec:authorize="isAuthenticated()">
@@ -39,7 +39,9 @@
                     Signed in as
                     <span class="badge text-bg-success" th:text="${#authentication.name}"></span>
                     to
-                    <a type="btn" th:href="${clusterProperties.adminUrl}" id="clusterId"
+                    <a type="btn" target="_blank"
+                       id="clusterId"
+                       th:href="${clusterProperties.adminUrl}"
                        th:text="${clusterProperties.clusterId}">DB Console</a>.
 
                     <span class="badge text-bg-success" th:text="${clusterVersion}"></span>
@@ -47,8 +49,6 @@
 
                 <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mb-5">
                     <a class="btn btn-lg btn-primary" href="/cluster">[[#{navigation.cluster.dashboard}]]</a>
-                    <a class="btn btn-lg btn-secondary" href="/workload">[[#{navigation.cluster.workloads}]]</a>
-                    <a class="btn btn-lg btn-tertiary" href="/proxy">[[#{navigation.cluster.toxiproxy}]]</a>
                 </div>
             </div>
         </div>
