@@ -10,6 +10,7 @@
 * [Terms of Use](#terms-of-use)
 * [Prerequisites](#prerequisites)
   * [Install the JDK](#install-the-jdk)
+  * [Install Toxiproxy](#install-toxiproxy)
 * [Building](#building)
   * [Clone the project](#clone-the-project)
   * [Build the artifacts](#build-the-artifacts)
@@ -21,6 +22,10 @@
   * [Local Cluster Configuration](#local-cluster-configuration)
 * [Running](#running)
   * [Local Cluster Management](#local-cluster-management)
+    * [Enable Toxiproxy (optional)](#enable-toxiproxy-optional)
+    * [Insecure Mode (default)](#insecure-mode-default)
+    * [Secure Mode](#secure-mode)
+    * [Next Steps](#next-steps)
     * [Remarks](#remarks)
     * [Shutdown](#shutdown)
 * [Appendix: Configuration Files](#appendix-configuration-files)
@@ -40,16 +45,18 @@ bash scripts.
 
 The main features include:
 
-- Visualize cluster health in a web UI with disruption and recovery controls.
-- Visualize impact on client workloads during steady state and node / zone / region disruptions.
-- Easy-to-use bash scripts for local CockroachDB cluster deployment and management.
+- Visualize cluster layout and node health. 
+- Provide node disruption and recovery controls.
+- Integrate with [Toxiproxy](https://github.com/Shopify/toxiproxy) for chaos testing.
+- Tigger client workloads and visualize impact during steady state and node / zone / region disruptions.
+- Provide easy-to-use bash scripts for local CockroachDB cluster deployment and management.
 - Ad-hoc setup and testing of local CockroachDB clusters
 
-The landing page showing the cluster layout and node status:
+Dashboard showing cluster layout and node status:
 
 ![ui1](.github/ui-1.png)
 
-The workload page with some activity:
+Workload page with some activity:
 
 ![ui2](.github/ui-2.png)
 
@@ -70,7 +77,7 @@ This tool supports the following platforms and versions:
 Pest Control consists of two parts:
 
 1. A front-end web app for the visuals along with a REST API for automation. 
-2. Bash scripts for easy installing and management of local CockroachDB clusters.
+2. Bash scripts for simple installation and management of local CockroachDB clusters.
 
 The web app adapts to the logged in cluster type. It can be either CockroachDB Cloud 
 or a local, self-hosted cluster. It mainly uses the Cockroach Cloud and Cluster APIs 
@@ -92,9 +99,11 @@ See [MIT](LICENSE.txt) for terms and conditions.
 Things you need to run Pest Control locally.
 
 - Java 17+ JDK
-    - https://openjdk.org/projects/jdk/17/
-    - https://www.oracle.com/java/technologies/downloads/#java17
-
+  - https://openjdk.org/projects/jdk/17/
+  - https://www.oracle.com/java/technologies/downloads/#java17
+- Toxiproxy (optional)
+  - https://github.com/Shopify/toxiproxy
+  
 ## Install the JDK
 
 MacOS (using sdkman):
@@ -106,6 +115,13 @@ MacOS (using sdkman):
 Ubuntu:
 
     sudo apt-get install openjdk-17-jdk
+
+## Install Toxiproxy
+
+It's not mandatory to use Toxiproxy in Pestcontrol, but it provides the fundamentals
+for actual chaos testing.
+
+See [Installing Toxiproxy](https://github.com/Shopify/toxiproxy?tab=readme-ov-file#1-installing-toxiproxy).
 
 # Building
 
@@ -137,6 +153,7 @@ The main configuration properties are in the [config/application-default.yml](co
 It includes a list of CockroachDB cluster definitions.
 
 Example with three cloud clusters and two local:
+
 ```yaml
 application:
   clusters:
@@ -262,23 +279,46 @@ Now you can access the application via http://localhost:9090 and login to the cl
 
 ## Local Cluster Management
 
-This section only apply if you intend to install and operate a local, 
-secure or insecure cluster. The default security mode is `insecure`.
-Edit `config/settings.cfg` and change `security_mode` to either `secure|insecure`.
-The secure mode will use self-signed CA certificates and keys in `.certs` including the PKCS12 truststore
-used by the web app.  
+This section apply only if you intend to install and operate a local, secure or insecure cluster. 
 
-Install CockroachDB, start some nodes, HAProxy and initialize the cluster:
+CockroachDB can operate in insecure or secure mode. The default security mode is `insecure`. Edit the 
+`config/settings.cfg` file to change `security_mode` to either `secure|insecure`.   
+
+### Enable Toxiproxy (optional)
+
+Edit the `config/settings.cfg` file to change `toxiproxy="on"`. This will make CockroachDB use
+a different `advertise-host` port allowing the toxic proxies to be injected and 
+intercept the RPC traffic.
+
+### Insecure Mode (default)
 
     ./cluster-admin install  
-    ./cluster-admin certs
+    ./cluster-admin start-toxi (if enabled)
     ./cluster-admin start-all (pick 1,2,3 to begin with)
     ./cluster-admin start-lb
     ./cluster-admin init
     ./cluster-admin open
 
-Once the cluster is up, you can either use the web UI or `cluster-admin` to
-kill and start nodes.
+### Secure Mode
+
+The secure mode will use self-signed CA certificates and keys in `.certs` including the
+PKCS12 truststore used by the web app. 
+
+1. Edit the `config/application.yml` file and uncomment the `spring.ssl` section.
+2. Start the whole thing
+
+
+    ./cluster-admin install  
+    ./cluster-admin certs
+    ./cluster-admin start-toxi (if enabled)
+    ./cluster-admin start-all (pick 1,2,3 to begin with)
+    ./cluster-admin start-lb
+    ./cluster-admin init
+    ./cluster-admin open
+
+### Next Steps
+
+Once the cluster is up, you can either use the [Web UI](http://localhost:9090) (recommended) or `cluster-admin` to kill and start nodes.
 
 ### Remarks
 
