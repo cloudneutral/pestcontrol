@@ -17,7 +17,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 import io.cockroachdb.pestcontrol.schema.nodes.Tier;
-import io.cockroachdb.pestcontrol.web.rest.LinkRelations;
+import io.cockroachdb.pestcontrol.web.api.LinkRelations;
 
 /**
  * Representation model for a CockroachDB cluster composed by the locality

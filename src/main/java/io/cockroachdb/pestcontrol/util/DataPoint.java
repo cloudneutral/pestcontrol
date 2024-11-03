@@ -20,8 +20,8 @@ public class DataPoint<ID> {
         return instant;
     }
 
-    public void put(ID id, Metrics from) {
-        Metrics m = Metrics.builder()
+    public void mark(ID id, Metrics from) {
+        metrics.put(id, Metrics.builder()
                 .withSuccessful(from.getSuccess())
                 .withFails(from.getTransientFail(), from.getNonTransientFail())
                 .withOps(from.getOpsPerSec(), from.getOpsPerMin())
@@ -30,12 +30,10 @@ public class DataPoint<ID> {
                 .withP95(from.getP95())
                 .withP99(from.getP99())
                 .withP999(from.getP999())
-                .withTime(from.getTime())
+                .withUpdateTime(from.getUpdateTime())
                 .withMeanTimeMillis(from.getMeanTimeMillis())
-                .withExpired(from.isExpired())
-                .build();
-
-        metrics.put(id, m);
+                .build()
+        );
     }
 
     public Metrics get(ID id) {

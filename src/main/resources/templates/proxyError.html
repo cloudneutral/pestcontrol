@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en" data-bs-theme="auto">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <title>Pest Control</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@docsearch/css@3">
+    <link href="/webjars/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../static/css/main.css" rel="stylesheet" th:href="@{/css/main.css}"/>
+</head>
+<body>
+
+<div th:replace="~{fragments/theme :: theme}"></div>
+
+<header th:replace="~{fragments/header :: header}"></header>
+
+<div class="container py-3">
+    <svg th:replace="~{fragments/symbols :: symbols}"></svg>
+
+    <div class="alert alert-warning align-items-center alert-dismissible fade show" role="alert">
+        <h4 class="alert-heading">
+            <svg class="bi flex-shrink-0 me-2" role="img" aria-label="Info:" width="1em" height="1em">
+                <use xlink:href="#exclamation-triangle-fill"/>
+            </svg>
+            Toxiproxy Error
+        </h4>
+
+        <p>An error occurred in the interaction with the local <code>toxy-proxy</code> server.
+            Check server log for further details.</p>
+        <hr>
+
+        <p th:if="${exception}">
+            <span th:text="${exception.message}"></span>
+        </p>
+        <p th:unless="${exception}">
+            Cause unknown (no exception details available).</p>
+
+        <hr>
+        <a role="button" class="btn btn-primary" th:href="@{/}">Home</a>
+        <a role="button" class="btn btn-secondary" th:href="@{/proxy}">Proxies</a>
+
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+</div>
+
+<footer th:replace="~{fragments/footer :: footer}"></footer>
+
+<script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+<script src="https://code.jquery.com/ui/1.13/jquery-ui.js"></script>
+<script src="https://code.jquery.com/color/jquery.color-2.2.0.js"></script>
+<script src="/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
+<script src="js/color-modes.js"></script>
+
+</body>
+</html>

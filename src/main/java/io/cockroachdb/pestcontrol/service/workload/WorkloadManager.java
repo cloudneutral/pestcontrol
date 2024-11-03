@@ -15,7 +15,6 @@ import java.util.function.Function;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import io.cockroachdb.pestcontrol.schema.WorkerModel;
 import io.cockroachdb.pestcontrol.util.Metrics;
 
 @Component
@@ -25,22 +24,29 @@ public class WorkloadManager {
     /**
      * Map cluster id to active workload workers.
      */
-    private final Map<String, WorkerRegistry> clusterWorkers = new ConcurrentHashMap<>();
+    private final Map<String, ClusterWorkers> clusterWorkers = new ConcurrentHashMap<>();
 
     @Autowired
     private WorkerExecutor workerExecutor;
 
-    public void updateDataPoints() {
+    public void updateDataPoints(Duration samplePeriod) {
         clusterWorkers.values()
                 .parallelStream()
-                .forEach(WorkerRegistry::updateDataPoints);
+                .forEach(clusterWorkers -> clusterWorkers.updateDataPoints(samplePeriod));
+    }
+
+    public void clearDataPoints(String clusterId) {
+        if (clusterWorkers.containsKey(clusterId)) {
+            clusterWorkers.get(clusterId).clearDataPoints();
+        }
     }
 
     public void submitWorker(String clusterId,
                              Callable<?> action,
                              WorkerType workerType,
                              Duration duration) {
-        final Instant stopTime = Instant.now().plus(duration);
+        final Instant startTime = Instant.now();
+        final Instant stopTime = startTime.plus(duration);
 
         Metrics metrics = Metrics.empty();
 
@@ -52,17 +58,18 @@ public class WorkloadManager {
         WorkerModel workerModel = new WorkerModel(
                 clusterId,
                 monotonicIdGenerator.incrementAndGet(),
+                startTime,
                 stopTime,
                 workerType.getDisplayValue(),
                 future,
                 metrics);
 
-        clusterWorkers.computeIfAbsent(clusterId, x -> new WorkerRegistry())
+        clusterWorkers.computeIfAbsent(clusterId, x -> new ClusterWorkers())
                 .addWorker(workerModel);
     }
 
-    private WorkerRegistry clusterWorkload(String clusterId) {
-        return clusterWorkers.computeIfAbsent(clusterId, x -> new WorkerRegistry());
+    private ClusterWorkers clusterWorkload(String clusterId) {
+        return clusterWorkers.computeIfAbsent(clusterId, x -> new ClusterWorkers());
     }
 
     /**
@@ -137,7 +144,7 @@ public class WorkloadManager {
             List<Double> data =
                     getTimeSeriesValues(clusterId, workload.getId())
                             .stream()
-                            .filter(metric -> !metric.isExpired())
+                            .filter(metric -> !metric.isExpired(workload.getStopTime()))
                             .map(mapper)
                             .toList();
 

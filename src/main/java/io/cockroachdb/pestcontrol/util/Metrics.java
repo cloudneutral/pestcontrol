@@ -15,15 +15,12 @@ public class Metrics {
     private static final int MAX_AGE_SECONDS = 10;
 
     public static Metrics empty() {
-        Metrics m = new Metrics();
-        m.time = Instant.now();
-        return m;
+        return new Metrics();
     }
 
-    public static Metrics expired(Metrics from) {
+    public static Metrics copy(Metrics from) {
         Metrics m = new Metrics();
-        m.expired = true;
-        m.time = from.time;
+        m.updateTime = from.updateTime;
         m.success = from.getSuccess();
         m.transientFail = from.getTransientFail();
         m.nonTransientFail = from.getNonTransientFail();
@@ -48,9 +45,7 @@ public class Metrics {
 
     private final Instant startTime = Instant.now();
 
-    private Instant time;
-
-    private boolean expired;
+    private Instant updateTime;
 
     private int success;
 
@@ -75,6 +70,7 @@ public class Metrics {
     private double p95;
 
     private Metrics() {
+        this.updateTime = Instant.now();
     }
 
     @NotThreadSafe
@@ -83,8 +79,6 @@ public class Metrics {
         update(duration);
     }
 
-
-    /////////////////
     @NotThreadSafe
     public void markFail(Duration duration, Throwable error, boolean isTransient) {
         if (errors.size() > 10) {
@@ -102,13 +96,13 @@ public class Metrics {
     }
 
     private void update(Duration duration) {
-        time = Instant.now();
+        updateTime = Instant.now();
 
-        fifoBuffer.add(Pair.of(time, Pair.of(duration, success)));
+        fifoBuffer.add(Pair.of(updateTime, Pair.of(duration, success)));
 
         // Purge items by time range
         fifoBuffer.removeIf(item -> item.getFirst()
-                .isBefore(time.minusSeconds(MAX_AGE_SECONDS)));
+                .isBefore(updateTime.minusSeconds(MAX_AGE_SECONDS)));
 
         // Latency percentiles and mean time
         {
@@ -139,33 +133,38 @@ public class Metrics {
             List<Instant> samples = fifoBuffer
                     .stream()
                     .map(Pair::getFirst)
-                    .filter(instant -> instant.isAfter(time.minusSeconds(MAX_AGE_SECONDS)))
+                    .filter(instant -> instant.isAfter(updateTime.minusSeconds(MAX_AGE_SECONDS)))
                     .toList();
             Instant oldestTime = samples.stream()
                     .findFirst()
-                    .orElse(time);
+                    .orElse(updateTime);
 
             opsPerSec = samples.size() /
-                        Math.max(1, Duration.between(oldestTime, time).toMillis() / 1000.0);
+                        Math.max(1, Duration.between(oldestTime, updateTime).toMillis() / 1000.0);
 
             opsPerMin = opsPerSec * 60;
         }
     }
 
+    @JsonIgnore
     public List<Throwable> getLastErrors() {
         return Collections.unmodifiableList(errors);
+    }
+
+    public List<String> getLastErrorMessages() {
+        return errors.stream().map(Throwable::getMessage).toList();
     }
 
     public double getExecutionTimeSeconds() {
         return Duration.between(startTime, Instant.now()).toMillis() / 1000.0;
     }
 
-    public Instant getTime() {
-        return time;
+    public Instant getUpdateTime() {
+        return updateTime;
     }
 
-    public boolean isExpired() {
-        return expired;
+    public boolean isExpired(Instant stopTime) {
+        return this.updateTime.isAfter(stopTime);
     }
 
     public int getSuccess() {
@@ -222,13 +221,8 @@ public class Metrics {
         private Builder() {
         }
 
-        public Builder withExpired(boolean expired) {
-            instance.expired = expired;
-            return this;
-        }
-
-        public Builder withTime(Instant time) {
-            instance.time = time;
+        public Builder withUpdateTime(Instant updateTime) {
+            instance.updateTime = updateTime;
             return this;
         }
 
@@ -280,7 +274,7 @@ public class Metrics {
         }
 
         public Metrics build() {
-            Assert.notNull(instance.time, "time is null");
+            Assert.notNull(instance.updateTime, "time is null");
             return instance;
         }
     }

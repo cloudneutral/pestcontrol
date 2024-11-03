@@ -11,7 +11,7 @@
 
     <groupId>io.cockroachdb.pestcontrol</groupId>
     <artifactId>pestcontrol</artifactId>
-    <version>1.0.1-SNAPSHOT</version>
+    <version>1.1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -175,6 +175,24 @@
             <groupId>org.webjars</groupId>
             <artifactId>sockjs-client</artifactId>
             <version>1.5.1</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars</groupId>
+            <artifactId>jquery</artifactId>
+            <version>3.7.1</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars</groupId>
+            <artifactId>jquery-ui</artifactId>
+            <version>1.13.0</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.webjars</groupId>
+            <artifactId>jquery-validation</artifactId>
+            <version>1.20.0</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>

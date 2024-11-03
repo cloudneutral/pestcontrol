@@ -72,8 +72,10 @@
                                     </svg>
 
                                     <div class="card-body">
-                                        <h5 class="card-title text-decoration-underline"
-                                            th:text="${'Node ' + node.getId()}"></h5>
+                                        <h5>
+                                        <a role="button" class="link-offset-3 link-underline link-underline-opacity-50"
+                                               th:href="${node.getRequiredLink('self').href}" th:text="${'Node ' + node.getId()}"></a>
+                                        </h5>
                                         <h5 class="card-subtitle mb-3"
                                             th:text="${node.getLocality()}"></h5>
                                         <h6 class="card-subtitle mb-3"
@@ -88,7 +90,8 @@
                                         <div class="d-flex justify-content-between align-items-center">
                                             <div role="group">
                                                 <a role="button" class="btn btn-sm btn-outline-success"
-                                                   th:href="${node.getRequiredLink('self').href}">View</a>
+                                                   th:if="${node.hasLink('toxic')}"
+                                                   th:href="${node.getRequiredLink('toxic').href}">Toxics</a>
                                                 <input class="btn btn-sm btn-outline-danger" type="submit"
                                                        name="node-action" value="Disrupt">
                                                 <input class="btn btn-sm btn-outline-info" type="submit"

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Pest Control</title>
+</head>
+<body>
+
+<div class="form-group" th:fragment="toxic">
+    <!-- NAME -->
+    <label for="name" class="col-form-label">Name of toxic:</label>
+    <input th:field="*{name}"
+           th:value="${name}"
+           type="text" class="form-control"
+           id="name" placeholder="(name_direction, like 'latency_downstream')">
+
+    <!-- STREAM -->
+    <label for="stream-type" class="col-form-label">Stream direction:</label>
+    <select th:field="*{toxicDirection}" id="stream-type" class="form-select"
+            aria-label="Default select">
+        <option th:each="wt : ${T(eu.rekawek.toxiproxy.model.ToxicDirection).values()}"
+                th:value="${wt}" th:text="${wt}"></option>
+    </select>
+
+    <!-- TOXICITY -->
+    <label for="toxicity" class="col-form-label">Toxicity factor (0-100%):</label>
+    <input th:field="*{toxicity}"
+           type="range" class="form-range" min="0" max="100" id="toxicity">
+</div>
+
+</body>
+</html>

@@ -79,6 +79,9 @@ case "${getopt}" in
     start-lb)
         command_start_lb.sh $*
         ;;
+    start-toxi)
+        command_start_proxy.sh $*
+        ;;
     stop)
         command_stop.sh $*
         ;;
@@ -87,6 +90,9 @@ case "${getopt}" in
         ;;
     stop-lb)
         command_stop_lb.sh $*
+        ;;
+    stop-toxi)
+        command_stop_proxy.sh $*
         ;;
     *)
     if [ -n "${getopt}" ]; then
@@ -113,6 +119,15 @@ case "${getopt}" in
         echo -e "${yellow}init\t${default}            | Initialize cluster"
         echo -e "${yellow}clean\t${default}            | Clean all data files"
     } | column -s $'\t' -t
+
+    if [ "${toxiproxy}" != "off" ]; then
+    echo -e ""
+    echo -e "${lightcyan}Toxiproxy Commands${default}"
+    {
+        echo -e "${cyan}start-toxi\t${default}         | Start toxiproxy server and add node proxies"
+        echo -e "${cyan}stop-toxi\t${default}         | Stop toxiproxy server"
+    } | column -s $'\t' -t
+    fi
 
     echo -e ""
     echo -e "${lightmagenta}Cluster Management Commands${default}"

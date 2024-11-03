@@ -4,8 +4,6 @@ import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -26,20 +24,16 @@ import io.cockroachdb.pestcontrol.schema.ClusterModel;
 import io.cockroachdb.pestcontrol.schema.ClusterProperties;
 import io.cockroachdb.pestcontrol.service.ClusterManager;
 import io.cockroachdb.pestcontrol.service.CommandException;
-import io.cockroachdb.pestcontrol.web.model.ClusterHelper;
-import io.cockroachdb.pestcontrol.web.model.MessageModel;
-import io.cockroachdb.pestcontrol.web.model.MessageType;
+import io.cockroachdb.pestcontrol.web.api.cluster.ClusterHelper;
+import io.cockroachdb.pestcontrol.web.api.cluster.ClusterRestController;
+import io.cockroachdb.pestcontrol.web.push.MessageModel;
+import io.cockroachdb.pestcontrol.web.push.MessageType;
 import io.cockroachdb.pestcontrol.web.push.SimpMessagePublisher;
 import io.cockroachdb.pestcontrol.web.push.TopicName;
-import io.cockroachdb.pestcontrol.web.rest.ClusterModelAssembler;
-import io.cockroachdb.pestcontrol.web.rest.ClusterRestController;
 
 @WebController
 @RequestMapping("/cluster")
-@SessionAttributes("helper")
-public class ClusterController {
-    private final Logger logger = LoggerFactory.getLogger(getClass());
-
+public class ClusterController extends AbstractSessionController {
     @Autowired
     private SimpMessagePublisher messagePublisher;
 
@@ -47,23 +41,11 @@ public class ClusterController {
     private ClusterManager clusterManager;
 
     @Autowired
-    private ClusterModelAssembler clusterModelAssembler;
-
-    @Autowired
     private ClusterRestController clusterRestController;
 
     @Scheduled(fixedRate = 5, initialDelay = 5, timeUnit = TimeUnit.SECONDS)
     public void scheduledStatusUpdate() {
         messagePublisher.convertAndSend(TopicName.DASHBOARD_MODEL_UPDATE);
-    }
-
-    @ModelAttribute("helper")
-    public ClusterHelper clusterHelper() {
-        ClusterProperties clusterProperties = WebUtils.getAuthenticatedClusterProperties().orElseThrow(() ->
-                new AuthenticationCredentialsNotFoundException("Expected authentication token"));
-
-        return new ClusterHelper(false)
-                .setClusterModel(clusterModelAssembler.toModel(ClusterModel.from(clusterProperties)));
     }
 
     private Optional<ClusterModel> newClusterModel() {

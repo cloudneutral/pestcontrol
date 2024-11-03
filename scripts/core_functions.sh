@@ -143,3 +143,8 @@ fn_fail_check(){
     fi
     return ${status}
 }
+
+fn_fail_check_print(){
+    echo -e "$@"
+    return 0
+}

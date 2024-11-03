@@ -30,7 +30,8 @@
                     cluster and cause disruption by killing individual nodes,
                     zones or entire regions and then recover.</p>
                 <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mb-5">
-                    <a class="btn btn-lg btn-primary" href="/login">[[#{navigation.login}]]</a>
+                    <a class="btn btn-lg btn-primary" th:href="@{/login}">[[#{navigation.login}]]</a>
+                    <a class="btn btn-lg btn-tertiary" th:href="@{/proxy}">[[#{navigation.cluster.toxiproxy}]]</a>
                 </div>
             </div>
             <div sec:authorize="isAuthenticated()">
@@ -47,6 +48,7 @@
                 <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mb-5">
                     <a class="btn btn-lg btn-primary" href="/cluster">[[#{navigation.cluster.dashboard}]]</a>
                     <a class="btn btn-lg btn-secondary" href="/workload">[[#{navigation.cluster.workloads}]]</a>
+                    <a class="btn btn-lg btn-tertiary" href="/proxy">[[#{navigation.cluster.toxiproxy}]]</a>
                 </div>
             </div>
         </div>

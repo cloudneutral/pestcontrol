@@ -65,7 +65,7 @@ spring:
   #############################
   mvc:
     problemdetails:
-      enabled: true
+      enabled: false
 #############################
 management:
   endpoints:
@@ -107,6 +107,8 @@ server:
 # Application specifics
 #############################
 application:
+  # Sample period for timeseries data points in graphs
+  samplePeriodSeconds: 300
   # -1 denotes VM host vCPUs * 4
   threadPoolMaxSize: -1
   # Base directory for cluster-admin script

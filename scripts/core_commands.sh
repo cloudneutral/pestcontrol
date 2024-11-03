@@ -55,6 +55,11 @@ command_start_lb.sh(){
 	source "${scriptsdir}/${modulefile}"
 }
 
+command_start_proxy.sh(){
+  modulefile="${FUNCNAME[0]}"
+	source "${scriptsdir}/${modulefile}"
+}
+
 command_stop.sh(){
   modulefile="${FUNCNAME[0]}"
 	source "${scriptsdir}/${modulefile}"
@@ -66,6 +71,11 @@ command_stop_all.sh(){
 }
 
 command_stop_lb.sh(){
+  modulefile="${FUNCNAME[0]}"
+	source "${scriptsdir}/${modulefile}"
+}
+
+command_stop_proxy.sh(){
   modulefile="${FUNCNAME[0]}"
 	source "${scriptsdir}/${modulefile}"
 }

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import io.cockroachdb.pestcontrol.web.api.toxi.ToxiproxyAccessException;
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -19,8 +20,20 @@ import jakarta.servlet.http.HttpServletRequest;
 public class WebExceptionHandler extends ResponseEntityExceptionHandler {
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
+    @ExceptionHandler({ToxiproxyAccessException.class})
+    public ModelAndView handleToxiproxyAccessException(ToxiproxyAccessException ex) {
+        ModelAndView mav = new ModelAndView("proxyError");
+        mav.addObject("exception", ex);
+        return mav;
+    }
+
     @ExceptionHandler(Exception.class)
-    public ModelAndView handleException(Exception exception, HttpServletRequest request) {
+    public ModelAndView handleException(Exception exception, HttpServletRequest request) throws Exception {
+        if (AnnotationUtils.findAnnotation(exception.getClass(),
+                ResponseStatus.class) != null) {
+            throw exception;
+        }
+
         HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
 
         ResponseStatus responseStatus = AnnotationUtils.findAnnotation(exception.getClass(), ResponseStatus.class);

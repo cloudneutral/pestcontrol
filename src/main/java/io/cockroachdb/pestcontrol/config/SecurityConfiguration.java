@@ -60,6 +60,7 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(auth -> auth
 //                        .requestMatchers("/api/cluster/**").authenticated()
 //                        .requestMatchers("/api/workload/**").authenticated()
+//                        .requestMatchers("/api/proxy/**").authenticated()
                         .requestMatchers("/api/**").permitAll()
                         .anyRequest().permitAll())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -79,6 +80,7 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/cluster").authenticated()
                         .requestMatchers("/workload").authenticated()
+//                        .requestMatchers("/proxy").authenticated()
                         .anyRequest().permitAll())
                 .formLogin(form -> form
                         .loginPage("/login")

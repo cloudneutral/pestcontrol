@@ -21,6 +21,12 @@ do
     let httpport=${httpportbase}+$offset
     let sqlport=${sqlportbase}+$offset
 
+    if [ "${toxiproxy}" != "off" ]; then
+    let advertise_rpcport=${toxiproxy_advertiseportbase}+$offset
+    else
+    let advertise_rpcport=${rpcportbase}+$offset
+    fi
+
     join=${host}:${port1},${host}:${port2},${host}:${port3}
     mempool="10%"
 

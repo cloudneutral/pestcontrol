@@ -7,8 +7,19 @@ fn_assert_binaries() {
   fi
 }
 
+fn_assert_proxies() {
+  if [ "${toxiproxy}" != "off" ]; then
+    pid=$(ps -ef | grep "toxiproxy-server" | grep "host" | awk '{print $2}')
+    if [ -x ${pid} ]; then
+       fn_print_error "toxiproxy mode is on but no toxiproxy-server appears to be running. You need to run 'start-toxi' before starting any nodes."
+       exit 1
+    fi
+  fi
+}
+
 fn_local_start() {
   fn_assert_binaries
+  fn_assert_proxies
 
   fn_print_dots "Starting node ${node} [--sql-addr=port=${host}:${sqlport} --locality=${zone}] in $security_mode mode"
 
@@ -17,6 +28,7 @@ fn_local_start() {
       fn_fail_check ${installdir}/cockroach start \
       --locality=${zone} \
       --listen-addr=${host}:${rpcport} \
+      --advertise-addr=${host}:${advertise_rpcport} \
       --sql-addr=${host}:${sqlport} \
       --http-addr=${host}:${httpport} \
       --join=${join} \
@@ -31,6 +43,7 @@ fn_local_start() {
       fn_fail_check ${installdir}/cockroach start \
       --locality=${zone} \
       --listen-addr=${host}:${rpcport} \
+      --advertise-addr=${host}:${advertise_rpcport} \
       --sql-addr=${host}:${sqlport} \
       --http-addr=${host}:${httpport} \
       --join=${join} \

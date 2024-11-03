@@ -1,5 +1,7 @@
 package io.cockroachdb.pestcontrol.service.workload.profile;
 
+import java.util.concurrent.Callable;
+
 import javax.sql.DataSource;
 
 import org.springframework.core.io.ClassPathResource;
@@ -11,9 +13,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 import io.cockroachdb.pestcontrol.repository.JdbcProfileRepository;
 import io.cockroachdb.pestcontrol.repository.ProfileRepository;
-import io.cockroachdb.pestcontrol.service.workload.Worker;
 
-public abstract class AbstractWorker<T> implements Worker<T> {
+public abstract class AbstractWorker<T> implements Callable<T> {
     protected final ProfileRepository profileRepository;
 
     protected final JdbcTemplate jdbcTemplate;

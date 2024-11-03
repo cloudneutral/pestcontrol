@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import io.cockroachdb.pestcontrol.service.ClusterManager;
-import io.cockroachdb.pestcontrol.web.model.MessageModel;
-import io.cockroachdb.pestcontrol.web.rest.FakeException;
+import io.cockroachdb.pestcontrol.web.push.MessageModel;
+import io.cockroachdb.pestcontrol.web.api.FakeException;
 
 @WebController
 @RequestMapping("/")
@@ -42,22 +42,22 @@ public class HomeController {
         return "notice";
     }
 
-    @GetMapping("/error")
+    @GetMapping("/fakeerror")
     public ResponseEntity<MessageModel> errorOnGet() {
         throw new FakeException("Fake exception!", new IOException("I/O disturbance!"));
     }
 
-    @PutMapping("/error")
+    @PutMapping("/fakeerror")
     public ResponseEntity<MessageModel> errorOnPut() {
         throw new FakeException("Fake exception!", new IOException("I/O disturbance!"));
     }
 
-    @PostMapping("/error")
+    @PostMapping("/fakeerror")
     public ResponseEntity<MessageModel> errorOnPost() {
         throw new FakeException("Fake exception!", new IOException("I/O disturbance!"));
     }
 
-    @DeleteMapping("/error")
+    @DeleteMapping("/fakeerror")
     public ResponseEntity<MessageModel> errorOnDelete() {
         throw new FakeException("Fake exception!", new IOException("I/O disturbance!"));
     }

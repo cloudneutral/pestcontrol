@@ -117,13 +117,13 @@ AppDashboard.prototype = {
 
         // console.log("Handle model update");
 
-        $.getJSON("workload/update/metrics", function(json) {
+        $.getJSON("workload/metrics/update", function(json) {
             // var _event = JSON.parse(payload.body);
             // console.log("Received agg metrics json: "+json);
             _this.handleAggregatedMetricsUpdate(json);
         });
 
-        $.getJSON("workload/update/workers", function(json) {
+        $.getJSON("workload/workers/update", function(json) {
             // var _event = JSON.parse(payload.body);
             // console.log("Received workers json: "+json);
             json.map(function (worker) {

@@ -53,15 +53,22 @@
             <code th:text="${exception}">Exception</code>
         </p>
 
-<!--
-        <div th:if="${trace}">
-            <b>Trace:</b>
-            <code th:text="${trace}">Exception</code>
-        </div>
--->
-
         <p th:unless="${exception}">
-            Cause unknown (no exception details available)</p>
+            Cause unknown (no exception details available).</p>
+        <p th:if="${exception}">
+            View page source for exception details.</p>
+
+        <!--
+          // Hidden Exception Details
+          -->
+        <div th:utext="'&lt;!--'" th:remove="tag"></div>
+        <div th:utext="'Failed URL: ' +  ${url}" th:remove="tag">${url}</div>
+        <div th:utext="'Exception: ' + ${message}" th:remove="tag">${message}</div>
+        <ul th:remove="tag">
+            <li th:each="ste : ${stackTrace}" th:remove="tag"><span
+                    th:utext="${ste}" th:remove="tag">${ste}</span></li>
+        </ul>
+        <div th:utext="'--&gt;'" th:remove="tag"></div>
 
         <hr>
         <a role="button" class="btn btn-primary" th:href="@{/}">Home</a>

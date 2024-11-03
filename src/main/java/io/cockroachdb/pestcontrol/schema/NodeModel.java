@@ -4,7 +4,6 @@ import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.core.Relation;
 import org.springframework.util.Assert;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -12,7 +11,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import io.cockroachdb.pestcontrol.schema.nodes.Locality;
 import io.cockroachdb.pestcontrol.schema.nodes.NodeDetail;
 import io.cockroachdb.pestcontrol.schema.status.NodeStatus;
-import io.cockroachdb.pestcontrol.web.rest.LinkRelations;
+import io.cockroachdb.pestcontrol.web.api.LinkRelations;
 
 /**
  * Combination of node detail and status.
