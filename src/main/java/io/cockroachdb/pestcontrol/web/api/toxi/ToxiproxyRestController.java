@@ -3,6 +3,7 @@ package io.cockroachdb.pestcontrol.web.api.toxi;
 import java.io.IOException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.Links;
 import org.springframework.http.HttpEntity;
@@ -25,6 +26,7 @@ import eu.rekawek.toxiproxy.model.ToxicType;
 import io.cockroachdb.pestcontrol.service.ResourceNotFoundException;
 import io.cockroachdb.pestcontrol.web.api.LinkRelations;
 import io.cockroachdb.pestcontrol.web.api.cluster.ClientModel;
+import jakarta.validation.Valid;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.afford;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
@@ -96,16 +98,16 @@ public class ToxiproxyRestController {
 
             return ResponseEntity.ok(CollectionModel.of(collectionModel.getContent(), newLinks));
         } catch (IOException e) {
-            throw new ToxiproxyAccessException("I/O exception reading proxies", e);
+            throw new ToxiproxyAccessException("I/O exception retrieving proxies - is toxiproxy-server running?", e);
         }
     }
 
     @GetMapping(value = "/proxy/form")
     public HttpEntity<ProxyForm> getProxyForm() {
         ProxyForm form = new ProxyForm();
-        form.setName("crdb-1");
-        form.setListen("localhost:35258");
-        form.setUpstream("localhost:25258");
+//        form.setName("crdb-1");
+//        form.setListen("localhost:35258");
+//        form.setUpstream("localhost:25258");
 
         return ResponseEntity.ok(form
                 .add(linkTo(methodOn(ToxiproxyRestController.class)
@@ -118,9 +120,7 @@ public class ToxiproxyRestController {
     }
 
     @PostMapping(value = "/proxy")
-    public HttpEntity<ProxyModel> newProxy(
-            @RequestBody ProxyForm form) {
-
+    public HttpEntity<ProxyModel> newProxy(@RequestBody @Valid ProxyForm form) {
         try {
             Proxy proxy = toxiproxyClient.createProxy(form.getName(), form.getListen(), form.getUpstream());
 
@@ -228,6 +228,7 @@ public class ToxiproxyRestController {
     @GetMapping(value = "/proxy/{name}/toxic/form")
     public HttpEntity<ToxicForm> getToxicForm(@PathVariable("name") String name) {
         ToxicForm form = new ToxicForm();
+        form.setProxy(name);
         form.setToxicDirection(ToxicDirection.DOWNSTREAM);
         form.setToxicity(100);
         form.setLatency(150L);
@@ -252,7 +253,7 @@ public class ToxiproxyRestController {
     @PostMapping(value = "/proxy/{name}/toxic")
     public HttpEntity<ToxicModel> newProxyToxic(
             @PathVariable("name") String name,
-            @RequestBody ToxicForm form) {
+            @RequestBody @Valid ToxicForm form) {
 
         try {
             Proxy proxy = findProxyByName(name);

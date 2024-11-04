@@ -29,21 +29,16 @@ public class WebExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ModelAndView handleException(Exception exception, HttpServletRequest request) throws Exception {
-        if (AnnotationUtils.findAnnotation(exception.getClass(),
-                ResponseStatus.class) != null) {
+        ResponseStatus responseStatus = AnnotationUtils.findAnnotation(exception.getClass(), ResponseStatus.class);
+        if (responseStatus != null) {
             throw exception;
         }
 
         HttpStatus httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
 
-        ResponseStatus responseStatus = AnnotationUtils.findAnnotation(exception.getClass(), ResponseStatus.class);
-        if (responseStatus != null) {
-            httpStatus = responseStatus.value();
-        } else {
-            Object status = request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
-            if (status != null) {
-                httpStatus = HttpStatus.valueOf(Integer.parseInt(status.toString()));
-            }
+        Object status = request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
+        if (status != null) {
+            httpStatus = HttpStatus.valueOf(Integer.parseInt(status.toString()));
         }
 
         if (httpStatus.is5xxServerError()) {

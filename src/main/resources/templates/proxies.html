@@ -26,7 +26,7 @@
                     <svg class="bi flex-shrink-0 me-2" role="img" aria-label="Info:" width="1em" height="1em">
                         <use xlink:href="#info-fill"/>
                     </svg>
-                    Proxy Management Dashboard
+                    Toxiproxy Dashboard
                 </h4>
                 <p>Current proxies that intercepts the RPC traffic between local cluster nodes.
                     Each node should have one proxy that listens to the <code>advertise-host</code>
@@ -56,6 +56,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
 
+
             <div class="table-responsive-xl">
                 <div class="table-responsive-xl">
                     <div class="hstack gap-2">
@@ -65,7 +66,10 @@
                     </div>
                 </div>
 
-                <table class="table table-striped table-bordered table-hover table-sm caption-top">
+                <p th:if="${#lists.size(proxies.getContent()) == 0}" class="badge text-bg-info mt-3">No proxies found, use the button above to add one.</p>
+
+                <table class="table table-striped table-bordered table-hover table-sm caption-top"
+                       th:if="${#lists.size(proxies.getContent()) > 0}">
                     <caption>Toxi Proxies</caption>
                     <thead class="thead-light">
                     <tr>
@@ -122,27 +126,35 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="form-group">
-                        <label for="name" class="col-form-label">Name:</label>
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Name:</label>
                         <input th:field="*{name}"
                                th:value="${name}"
                                type="text" class="form-control"
-                               id="name" placeholder="">
-
-                        <label for="listen" class="col-form-label">Listen:</label>
+                               id="name" placeholder="some name">
+                    </div>
+                    <div class="mb-3">
+                        <label for="listen" class="form-label">Listen address:</label>
                         <input th:field="*{listen}"
                                th:value="${listen}"
                                type="text" class="form-control"
-                               id="listen" placeholder="">
-
-                        <label for="upstream" class="col-form-label">Upstream:</label>
+                               id="listen"
+                               placeholder="localhost:35258"
+                               aria-describedby="listenHelpBlock">
+                        <div id="listenHelpBlock" class="form-text">
+                            If listen is specified with a port of 0, toxiproxy will pick an ephemeral port. The listen field in the response will be updated with the actual port.
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="upstream" class="form-label">Upstream address:</label>
                         <input th:field="*{upstream}"
                                th:value="${upstream}"
                                type="text" class="form-control"
-                               id="upstream" placeholder="">
+                               id="upstream"
+                               placeholder="localhost:25258">
                     </div>
-
                 </div>
+
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     <button type="submit" class="btn btn-primary">Add</button>

@@ -124,21 +124,21 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="form-group">
-                        <label for="workload-type" class="col-form-label">Type of workload:</label>
+                    <div class="mb-3">
+                        <label for="workload-type" class="form-label">Type of workload:</label>
                         <select th:field="*{workloadType}" id="workload-type" class="form-select"
                                 aria-label="Default select">
                             <option th:each="wt : ${T(io.cockroachdb.pestcontrol.service.workload.WorkerType).values()}"
                                     th:value="${wt}" th:text="${wt.displayValue}"></option>
                         </select>
 
-                        <label for="workload-range" class="col-form-label">Number of workers (1-10):</label>
+                        <label for="workload-range" class="form-label">Number of workers (1-10):</label>
                         <input th:field="*{count}"
                                type="range" class="form-range" min="1" max="10" id="workload-range">
                     </div>
 
-                    <div class="form-group">
-                        <label for="workload-duration" class="col-form-label">Runtime duration (hh:mm):</label>
+                    <div class="mb-3">
+                        <label for="workload-duration" class="form-label">Runtime duration (hh:mm):</label>
                         <input th:field="*{duration}"
                                th:value="${form.duration}"
                                id="workload-duration"

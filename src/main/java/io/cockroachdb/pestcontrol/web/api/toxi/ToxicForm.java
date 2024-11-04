@@ -8,10 +8,14 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import eu.rekawek.toxiproxy.model.ToxicDirection;
 import eu.rekawek.toxiproxy.model.ToxicType;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ToxicForm extends RepresentationModel<ToxicForm> {
+    private String proxy;
+
     @NotNull
+    @Size(min = 1, message = "Name should contain at least 1 character")
     private String name;
 
     @NotNull
@@ -39,6 +43,14 @@ public class ToxicForm extends RepresentationModel<ToxicForm> {
     private Long sizeVariation;
 
     private Long delay;
+
+    public String getProxy() {
+        return proxy;
+    }
+
+    public void setProxy(String proxy) {
+        this.proxy = proxy;
+    }
 
     public @NotNull String getName() {
         return name;

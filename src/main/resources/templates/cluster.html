@@ -20,10 +20,10 @@
 
     <div class="py-5 bg-body-tertiary">
         <div class="container">
-            <div class="alert alert-info d-flex align-items-center alert-dismissible fade show" role="alert">
+            <div class="alert alert-info align-items-center alert-dismissible fade show" role="alert">
                 <svg class="bi flex-shrink-0 me-2" role="img" aria-label="Info:" width="1em" height="1em"><use xlink:href="#info-fill"/></svg>
-                Cluster id: <a class="alert-link" th:href="${helper.clusterModel.getRequiredLink('admin').href}"
-                               th:text="${helper.id}">DB Console</a>
+                Cluster id <a class="alert-link" th:href="${helper.clusterModel.getRequiredLink('admin').href}"
+                               th:text="${helper.id}">DB Console</a> with type <span class="badge text-bg-info" th:text="${helper.clusterModel.getClusterProperties().getClusterType()}"> </span>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
 

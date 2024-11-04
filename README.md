@@ -50,7 +50,6 @@ The main features include:
 - Integrate with [Toxiproxy](https://github.com/Shopify/toxiproxy) for chaos testing.
 - Tigger client workloads and visualize impact during steady state and node / zone / region disruptions.
 - Provide easy-to-use bash scripts for local CockroachDB cluster deployment and management.
-- Ad-hoc setup and testing of local CockroachDB clusters
 
 Dashboard showing cluster layout and node status:
 
@@ -76,16 +75,17 @@ This tool supports the following platforms and versions:
 
 Pest Control consists of two parts:
 
-1. A front-end web app for the visuals along with a REST API for automation. 
-2. Bash scripts for simple installation and management of local CockroachDB clusters.
+- A web app for the visuals, with a REST API for automation. 
+- Bash scripts for simple installation and management of local CockroachDB clusters.
 
-The web app adapts to the logged in cluster type. It can be either CockroachDB Cloud 
-or a local, self-hosted cluster. It mainly uses the Cockroach Cloud and Cluster APIs 
-for interaction with the cluster, with the exception for local clusters that don't
-provide any disruption API like Cockroach Cloud. For that, it uses bash scripts
-to pass for disrupting and recovering node failures. 
+The web app adapts to the logged in cluster type that can be either CockroachDB Cloud 
+or a self-hosted cluster.
 
-Lastly, it uses JDBC to run optional user triggered workloads against the cluster.
+The bash scripts are used for local deployments only and manage local cluster 
+nodes, haproxy, toxiproxy and launching the web app.
+
+Overall it uses the Cockroach Cloud API, Cluster API, bash scripts, 
+JDBC for the built-in workloads and HTTP to interact with Toxiproxy. 
 
 # Terms of Use
 
@@ -116,16 +116,16 @@ Ubuntu:
 
     sudo apt-get install openjdk-17-jdk
 
-## Install Toxiproxy
+## Install Toxiproxy (optional)
 
-It's not mandatory to use Toxiproxy in Pestcontrol, but it provides the fundamentals
-for actual chaos testing.
+Toxiproxy provides the fundamentals for chaos testing but is not mandatory
+to use with Pestcontrol.
 
 See [Installing Toxiproxy](https://github.com/Shopify/toxiproxy?tab=readme-ov-file#1-installing-toxiproxy).
 
 # Building
 
-Instruction for building the project locally, as an alternative to using the
+Instructions for building the project locally, as an alternative to using the
 packaged TAR.GZ assembly artifact.
 
 ## Clone the project
@@ -150,9 +150,14 @@ as described:
 
 Pest Control is configured through the files available in the [config](config) directory.
 The main configuration properties are in the [config/application-default.yml](config/application-default.yml) file.
-It includes a list of CockroachDB cluster definitions.
 
-Example with three cloud clusters and two local:
+You can either edit that file directly or create a new one with a custom name
+suffix and then pass that name in the `--profiles` argument.
+
+    cp config/application.yml config/application-craig.yml
+    java -jar pestcontrol.jar --profiles craig
+
+Example configuration with 3 cloud clusters and 2 local clusters:
 
 ```yaml
 application:
@@ -258,37 +263,53 @@ The JDBC datasource configuration for querying node status and running workloads
 | password   | Yes      | cockroach | The SQL user password for secure clusters. |
 
 
-## Local Cluster Configuration
-
-The default settings are usually sufficient unless you have conflicting network ports occupied.
-Edit [config/settings-secure.cfg](config/settings-secure.cfg) or [config/settings-insecure.cfg](config/settings-insecure.cfg) and change the 
-details, as necessary.
-
 # Running
 
-Start the app in the background with:
+Start the app in the background:
     
     ./cluster-admin start-service
 
-Other alternative:
+Now you can access the application via http://localhost:9090 and login to the cluster 
+of choice.
+
+**Alternative**
+
+Start the app in the foreground:
+    
+    ./cluster-admin run-service <args>
+
+Equivalent to:
 
     ln -sf target/pestcontrol-<version>.jar pestcontrol.jar
-    java -jar pestcontrol.jar
+    java -jar pestcontrol.jar <args>
 
-Now you can access the application via http://localhost:9090 and login to the cluster of choice.
+# Local Cluster Management
 
-## Local Cluster Management
+This section apply only if you intend to install and operate a local, secure or 
+insecure cluster, optionally with toxiproxy for chaos testing. 
 
-This section apply only if you intend to install and operate a local, secure or insecure cluster. 
+## Local Cluster Configuration
 
-CockroachDB can operate in insecure or secure mode. The default security mode is `insecure`. Edit the 
-`config/settings.cfg` file to change `security_mode` to either `secure|insecure`.   
+The default settings are usually sufficient unless you have conflicting network ports occupied.
+
+CockroachDB can operate in either insecure or secure mode. The default security mode 
+is `insecure`. 
+
+- Edit the `config/settings.cfg` file to change `security_mode` to either `secure|insecure`.   
+
+- Edit `config/settings-secure.cfg` or `config/settings-insecure.cfg` and change host, 
+port or other details, if necessary.
 
 ### Enable Toxiproxy (optional)
 
-Edit the `config/settings.cfg` file to change `toxiproxy="on"`. This will make CockroachDB use
-a different `advertise-host` port allowing the toxic proxies to be injected and 
-intercept the RPC traffic.
+- Edit the `config/settings.cfg` file to change `toxiproxy="on"`. 
+
+This will make CockroachDB use a different `advertise-host` port, allowing the 
+proxies to be injected and intercept the RPC traffic using different toxics. 
+
+Think of it like valves or filters put on a pipe to regulate water flow.
+
+## Start cluster
 
 ### Insecure Mode (default)
 
@@ -301,12 +322,7 @@ intercept the RPC traffic.
 
 ### Secure Mode
 
-The secure mode will use self-signed CA certificates and keys in `.certs` including the
-PKCS12 truststore used by the web app. 
-
-1. Edit the `config/application.yml` file and uncomment the `spring.ssl` section.
-2. Start the whole thing
-
+First edit the `config/application.yml` file and uncomment the `spring.ssl` section.
 
     ./cluster-admin install  
     ./cluster-admin certs
@@ -316,22 +332,27 @@ PKCS12 truststore used by the web app.
     ./cluster-admin init
     ./cluster-admin open
 
-### Next Steps
+The secure mode will use self-signed CA certificates and keys in `.certs` including the
+PKCS12 truststore used by the web app.
 
-Once the cluster is up, you can either use the [Web UI](http://localhost:9090) (recommended) or `cluster-admin` to kill and start nodes.
+## Next Steps
 
-### Remarks
+Once the cluster is up, you can either use the [Web UI](http://localhost:9090) (recommended) 
+or `cluster-admin` to kill and start nodes.
+
+## Remarks
 
 If you switch between the `secure` and `insecure` modes, re-run the `init` command to
 set proper SQL user roles and secrets.
 
-### Shutdown
+## Shutdown
 
 To shut things down, run the inverse:
 
     ./cluster-admin stop-service
     ./cluster-admin stop-lb
     ./cluster-admin stop-all
+    ./cluster-admin stop-toxi
     ./cluster-admin clean
 
 # Appendix: Configuration Files

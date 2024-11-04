@@ -21,7 +21,8 @@
     <div class="py-2 rounded bg-body-tertiary">
         <div class="container-xl">
 
-            <div class="alert alert-info align-items-center alert-dismissible fade show" role="alert">
+            <div class="alert alert-info align-items-center alert-dismissible fade show" role="alert"
+                 th:if="${#lists.size(#fields.errors('form.*')) == 0}">
                 <h4 class="alert-heading">
                     <svg class="bi flex-shrink-0 me-2" role="img" aria-label="Info:" width="1em" height="1em">
                         <use xlink:href="#info-fill"/>
@@ -43,9 +44,33 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
 
-            <div class="table-responsive-xl">
+            <div class="alert alert-warning align-items-center alert-dismissible fade show" role="alert"
+                 th:if="${#lists.size(#fields.errors('form.*')) > 0}">
+                <h4 class="alert-heading">
+                    <svg class="bi flex-shrink-0 me-2" role="img" aria-label="Info:" width="1em" height="1em">
+                        <use xlink:href="#exclamation-triangle-fill"/>
+                    </svg>
+                    Error adding toxic
+                </h4>
+                <p>Please correct the following errors:</p>
+                <hr>
+                <ul>
+                    <li th:each="err : ${#fields.errors('form.*')}" th:text="${err}"/>
+                </ul>
+
+                <button type="button" class="btn btn-sm btn-outline-primary"
+                        data-bs-toggle="modal" th:attr="data-bs-target=${modal}">Edit</button>
+
+                <a th:href="@{/proxy/{name}/toxic(name=${form.proxy})}"
+                   class="btn btn-sm btn-space btn-outline-danger">Cancel</a>
+
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <div class="table-responsive-xl"
+                 th:if="${#lists.size(#fields.errors('form.*')) == 0}">
                 <div class="hstack gap-2">
-<!--                    <span class="align-middle">Add Toxic:</span>-->
+                    <span class="align-middle">Add Toxic:</span>
 <!--                    <div class="vr"></div>-->
                     <button type="button" class="btn btn-sm btn-outline-primary"
                             data-bs-toggle="modal" data-bs-target="#addModalLatency">Latency
@@ -53,34 +78,32 @@
                     <button type="button" class="btn btn-sm btn-outline-secondary"
                             data-bs-toggle="modal" data-bs-target="#addModalBandwidth">Bandwidth
                     </button>
-                    <div class="vr"></div>
                     <button type="button" class="btn btn-sm btn-outline-success"
                             data-bs-toggle="modal" data-bs-target="#addModalSlowClose">Slow Close
                     </button>
                     <button type="button" class="btn btn-sm btn-outline-danger"
                             data-bs-toggle="modal" data-bs-target="#addModalTimeout">Timeout
                     </button>
-                    <div class="vr"></div>
                     <button type="button" class="btn btn-sm btn-outline-warning"
                             data-bs-toggle="modal" data-bs-target="#addModalSlicer">Slicer
                     </button>
                     <button type="button" class="btn btn-sm btn-outline-info"
                             data-bs-toggle="modal" data-bs-target="#addModalLimitData">Limit Data
                     </button>
-                    <div class="vr"></div>
-                    <button type="button" class="btn btn-sm btn-outline-light"
+                    <button type="button" class="btn btn-sm btn-outline-dark"
                             data-bs-toggle="modal" data-bs-target="#addModalResetPeer">Reset Peer
                     </button>
                 </div>
 
-                <p th:if="${#lists.size(toxics.getContent()) == 0}" class="badge text-bg-info mt-3">No toxics found, use the buttons above to add one.</p>
+                <p th:if="${#lists.size(toxics.getContent()) == 0}" class="badge text-bg-info mt-3">No toxics found, use
+                    the buttons above to add one.</p>
 
                 <table class="table table-striped table-bordered table-hover table-sm caption-top"
                        th:if="${#lists.size(toxics.getContent()) > 0}">
                     <caption>Toxics for
                         <a class="alert-link" th:if="${proxy.getRequiredLink('self')}"
-                                          th:href="${proxy.getRequiredLink('self').href}"
-                                          th:text="${proxy.name}"></a>
+                           th:href="${proxy.getRequiredLink('self').href}"
+                           th:text="${proxy.name}"></a>
                     </caption>
                     <thead class="thead-light">
                     <tr>
@@ -120,8 +143,9 @@
 <!-- Modals -->
 <div id="addModalLatency" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel1"
      aria-hidden="true">
-    <form th:action="@{/proxy/{name}/toxic(name=${proxy.name})}" th:object="${form}" method="post">
+    <form th:action="@{/proxy/{name}/toxic(name=${form.proxy})}" th:object="${form}" method="post">
         <input type="hidden" name="toxicType" th:value="${T(eu.rekawek.toxiproxy.model.ToxicType).LATENCY}"/>
+        <input type="hidden" name="proxy" th:value="${form.proxy}"/>
 
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -131,20 +155,22 @@
                 </div>
 
                 <div class="modal-body">
-                    <div th:replace="~{fragments/toxic :: toxic}"></div>
+                    <div th:replace="~{fragments/toxic :: toxic-common}"></div>
+
                     <!-- Specific for this toxic -->
-                    <div class="form-group">
-                        <label for="latency" class="col-form-label">Latency (ms):</label>
+                    <div class="form-floating mb-3">
                         <input th:field="*{latency}"
                                th:value="${latency}"
                                type="text" class="form-control"
                                id="latency" placeholder="150">
-
-                        <label for="jitter" class="col-form-label">Jitter (ms):</label>
+                        <label for="latency">Latency (<code>ms</code>):</label>
+                    </div>
+                    <div class="form-floating mb-3">
                         <input th:field="*{jitter}"
                                th:value="${jitter}"
                                type="text" class="form-control"
                                id="jitter" placeholder="15">
+                        <label for="jitter">Jitter (<code>ms</code>):</label>
                     </div>
                 </div>
 
@@ -159,8 +185,9 @@
 
 <div id="addModalBandwidth" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel2"
      aria-hidden="true">
-    <form th:action="@{/proxy/{name}/toxic(name=${proxy.name})}" th:object="${form}" method="post">
+    <form th:action="@{/proxy/{name}/toxic(name=${form.proxy})}" th:object="${form}" method="post">
         <input type="hidden" name="toxicType" th:value="${T(eu.rekawek.toxiproxy.model.ToxicType).BANDWIDTH}"/>
+        <input type="hidden" name="proxy" th:value="${form.proxy}"/>
 
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -170,14 +197,15 @@
                 </div>
 
                 <div class="modal-body">
-                    <div th:replace="~{fragments/toxic :: toxic}"></div>
+                    <div th:replace="~{fragments/toxic :: toxic-common}"></div>
+
                     <!-- Specific for this toxic -->
-                    <div class="form-group">
-                        <label for="latency" class="col-form-label">Rate to throttle packets by (KB/s):</label>
+                    <div class="form-floating mb-3">
                         <input th:field="*{rate}"
                                th:value="${rate}"
                                type="text" class="form-control"
                                id="rate" placeholder="16">
+                        <label for="latency">Rate to throttle packets by (<code>KB/s</code>):</label>
                     </div>
                 </div>
 
@@ -192,8 +220,9 @@
 
 <div id="addModalSlowClose" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel3"
      aria-hidden="true">
-    <form th:action="@{/proxy/{name}/toxic(name=${proxy.name})}" th:object="${form}" method="post">
+    <form th:action="@{/proxy/{name}/toxic(name=${form.proxy})}" th:object="${form}" method="post">
         <input type="hidden" name="toxicType" th:value="${T(eu.rekawek.toxiproxy.model.ToxicType).SLOW_CLOSE}"/>
+        <input type="hidden" name="proxy" th:value="${form.proxy}"/>
 
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -203,14 +232,15 @@
                 </div>
 
                 <div class="modal-body">
-                    <div th:replace="~{fragments/toxic :: toxic}"></div>
+                    <div th:replace="~{fragments/toxic :: toxic-common}"></div>
+
                     <!-- Specific for this toxic -->
-                    <div class="form-group">
-                        <label for="delay" class="col-form-label">Time to delay each packet by (ms):</label>
+                    <div class="form-floating mb-3">
                         <input th:field="*{delay}"
                                th:value="${delay}"
                                type="text" class="form-control"
                                id="delay" placeholder="150">
+                        <label for="delay">Time to delay each packet by (<code>ms</code>):</label>
                     </div>
                 </div>
 
@@ -225,8 +255,9 @@
 
 <div id="addModalTimeout" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel4"
      aria-hidden="true">
-    <form th:action="@{/proxy/{name}/toxic(name=${proxy.name})}" th:object="${form}" method="post">
+    <form th:action="@{/proxy/{name}/toxic(name=${form.proxy})}" th:object="${form}" method="post">
         <input type="hidden" name="toxicType" th:value="${T(eu.rekawek.toxiproxy.model.ToxicType).TIMEOUT}"/>
+        <input type="hidden" name="proxy" th:value="${form.proxy}"/>
 
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -236,14 +267,15 @@
                 </div>
 
                 <div class="modal-body">
-                    <div th:replace="~{fragments/toxic :: toxic}"></div>
+                    <div th:replace="~{fragments/toxic :: toxic-common}"></div>
+
                     <!-- Specific for this toxic -->
-                    <div class="form-group">
-                        <label for="timeout" class="col-form-label">Time to wait (ms):</label>
+                    <div class="form-floating mb-3">
                         <input th:field="*{timeout}"
                                th:value="${timeout}"
                                type="text" class="form-control"
                                id="timeout" placeholder="150">
+                        <label for="timeout">Time to wait (<code>ms</code>):</label>
                     </div>
                 </div>
 
@@ -258,8 +290,9 @@
 
 <div id="addModalSlicer" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel5"
      aria-hidden="true">
-    <form th:action="@{/proxy/{name}/toxic(name=${proxy.name})}" th:object="${form}" method="post">
+    <form th:action="@{/proxy/{name}/toxic(name=${form.proxy})}" th:object="${form}" method="post">
         <input type="hidden" name="toxicType" th:value="${T(eu.rekawek.toxiproxy.model.ToxicType).SLICER}"/>
+        <input type="hidden" name="proxy" th:value="${form.proxy}"/>
 
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -269,24 +302,29 @@
                 </div>
 
                 <div class="modal-body">
-                    <div th:replace="~{fragments/toxic :: toxic}"></div>
+                    <div th:replace="~{fragments/toxic :: toxic-common}"></div>
+
                     <!-- Specific for this toxic -->
-                    <div class="form-group">
-                        <label for="averageSize" class="col-form-label">Size of an average packet (bytes):</label>
+                    <div class="form-floating mb-3">
                         <input th:field="*{averageSize}"
                                th:value="${averageSize}"
                                type="text" class="form-control"
                                id="averageSize" placeholder="150">
-                        <label for="sizeVariation" class="col-form-label">Variation of an average packet that should be smaller than average size (bytes):</label>
+                        <label for="averageSize">Size of an average packet (<code>bytes</code>):</label>
+                    </div>
+                    <div class="form-floating mb-3">
                         <input th:field="*{sizeVariation}"
                                th:value="${sizeVariation}"
                                type="text" class="form-control"
                                id="sizeVariation" placeholder="150">
-                        <label for="delay2" class="col-form-label">Time in µs to delay each packet by (<code>microseconds</code>):</label>
+                        <label for="sizeVariation">Variation of an average packet size (<code>bytes</code>):</label>
+                    </div>
+                    <div class="form-floating mb-3">
                         <input th:field="*{delay}"
                                th:value="${delay}"
                                type="text" class="form-control"
                                id="delay2" placeholder="150">
+                        <label for="delay2">Time in µs to delay each packet by (<code>microseconds</code>):</label>
                     </div>
                 </div>
 
@@ -301,8 +339,9 @@
 
 <div id="addModalLimitData" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel6"
      aria-hidden="true">
-    <form th:action="@{/proxy/{name}/toxic(name=${proxy.name})}" th:object="${form}" method="post">
+    <form th:action="@{/proxy/{name}/toxic(name=${form.proxy})}" th:object="${form}" method="post">
         <input type="hidden" name="toxicType" th:value="${T(eu.rekawek.toxiproxy.model.ToxicType).LIMIT_DATA}"/>
+        <input type="hidden" name="proxy" th:value="${form.proxy}"/>
 
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -312,14 +351,15 @@
                 </div>
 
                 <div class="modal-body">
-                    <div th:replace="~{fragments/toxic :: toxic}"></div>
+                    <div th:replace="~{fragments/toxic :: toxic-common}"></div>
+
                     <!-- Specific for this toxic -->
-                    <div class="form-group">
-                        <label for="bytes" class="col-form-label">Number of bytes to transmit before connection is closed (bytes):</label>
+                    <div class="form-floating mb-3">
                         <input th:field="*{bytes}"
                                th:value="${bytes}"
                                type="text" class="form-control"
                                id="bytes" placeholder="150">
+                        <label for="bytes">Number of bytes to transmit before connection is closed (<code>bytes</code>):</label>
                     </div>
                 </div>
 
@@ -334,8 +374,9 @@
 
 <div id="addModalResetPeer" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel7"
      aria-hidden="true">
-    <form th:action="@{/proxy/{name}/toxic(name=${proxy.name})}" th:object="${form}" method="post">
+    <form th:action="@{/proxy/{name}/toxic(name=${form.proxy})}" th:object="${form}" method="post">
         <input type="hidden" name="toxicType" th:value="${T(eu.rekawek.toxiproxy.model.ToxicType).RESET_PEER}"/>
+        <input type="hidden" name="proxy" th:value="${form.proxy}"/>
 
         <div class="modal-dialog" role="document">
             <div class="modal-content">
@@ -345,14 +386,15 @@
                 </div>
 
                 <div class="modal-body">
-                    <div th:replace="~{fragments/toxic :: toxic}"></div>
+                    <div th:replace="~{fragments/toxic :: toxic-common}"></div>
+
                     <!-- Specific for this toxic -->
-                    <div class="form-group">
-                        <label for="timeout2" class="col-form-label">Time to wait (ms):</label>
+                    <div class="form-floating mb-3">
                         <input th:field="*{timeout}"
                                th:value="${timeout}"
                                type="text" class="form-control"
                                id="timeout2" placeholder="150">
+                        <label for="timeout2">Time to wait (<code>ms</code>):</label>
                     </div>
                 </div>
 

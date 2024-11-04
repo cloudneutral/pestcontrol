@@ -13,6 +13,10 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 public class NodeModelAssembler implements RepresentationModelAssembler<NodeModel, NodeModel> {
     @Override
     public NodeModel toModel(NodeModel resource) {
+        if (resource.hasLinks()) {
+            return resource;
+        }
+
         resource.add(linkTo(methodOn(NodeRestController.class)
                 .getNode(resource.getClusterId(), resource.getId()))
                 .withSelfRel());

@@ -14,29 +14,33 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 @Component
 public class WorkerModelAssembler implements RepresentationModelAssembler<WorkerModel, WorkerModel> {
     @Override
-    public WorkerModel toModel(WorkerModel model) {
+    public WorkerModel toModel(WorkerModel resource) {
+        if (resource.hasLinks()) {
+            return resource;
+        }
+
         Link selfLink = linkTo(methodOn(WorkloadRestController.class)
-                .getWorker(model.getClusterId(), model.getId()))
+                .getWorker(resource.getClusterId(), resource.getId()))
                 .withSelfRel();
 
-        if (model.isRunning()) {
+        if (resource.isRunning()) {
             selfLink = selfLink.andAffordance(afford(methodOn(WorkloadRestController.class)
-                    .cancelWorker(model.getClusterId(), model.getId())));
+                    .cancelWorker(resource.getClusterId(), resource.getId())));
 
-            model.add(linkTo(methodOn(WorkloadRestController.class)
-                    .cancelWorker(model.getClusterId(), model.getId()))
+            resource.add(linkTo(methodOn(WorkloadRestController.class)
+                    .cancelWorker(resource.getClusterId(), resource.getId()))
                     .withRel(LinkRelations.CANCEL_REL));
         } else {
             selfLink = selfLink.andAffordance(afford(methodOn(WorkloadRestController.class)
-                    .deleteWorker(model.getClusterId(), model.getId())));
+                    .deleteWorker(resource.getClusterId(), resource.getId())));
 
-            model.add(linkTo(methodOn(WorkloadRestController.class)
-                    .deleteWorker(model.getClusterId(), model.getId()))
+            resource.add(linkTo(methodOn(WorkloadRestController.class)
+                    .deleteWorker(resource.getClusterId(), resource.getId()))
                     .withRel(LinkRelations.DELETE_REL));
         }
 
-        model.add(selfLink);
+        resource.add(selfLink);
 
-        return model;
+        return resource;
     }
 }

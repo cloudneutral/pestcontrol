@@ -82,13 +82,34 @@ public class ToxiproxyController {
     @PostMapping("/{name}/toxic")
     public Callable<String> submitToxicForm(@PathVariable("name") String name,
                                             @Valid @ModelAttribute("form") ToxicForm form,
-                                            Model model,
-                                            BindingResult bindingResult) {
+                                            BindingResult bindingResult,
+                                            Model model) {
+        if (!bindingResult.hasErrors()) {
+            try {
+                toxiproxyRestController.newProxyToxic(name, form);
+            } catch (ToxiproxyAccessException e) {
+                bindingResult.addError(new ObjectError("globalError", e.getLocalizedMessage()));
+            }
+        }
+
         if (bindingResult.hasErrors()) {
+//            model.addAttribute("proxy", toxiproxyRestController.findProxy(name).getBody());
+//            model.addAttribute("toxics", toxiproxyRestController.findProxyToxics(name).getBody());
+            model.addAttribute("form", form);
+
+            switch (form.getToxicType()) {
+                case LATENCY -> model.addAttribute("modal", "#addModalLatency");
+                case BANDWIDTH -> model.addAttribute("modal", "#addModalBandwidth");
+                case SLOW_CLOSE -> model.addAttribute("modal", "#addModalSlowClose");
+                case TIMEOUT -> model.addAttribute("modal", "#addModalTimeout");
+                case SLICER -> model.addAttribute("modal", "#addModalSlicer");
+                case LIMIT_DATA -> model.addAttribute("modal", "#addModalLimitData");
+                case RESET_PEER -> model.addAttribute("modal", "#addModalResetPeer");
+            }
+
             return () -> "toxics";
         }
-        toxiproxyRestController.newProxyToxic(name, form);
-        model.addAttribute("form", form);
+
         return () -> "redirect:/proxy/" + name + "/toxic";
     }
 

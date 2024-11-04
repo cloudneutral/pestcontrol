@@ -104,7 +104,7 @@ case "${getopt}" in
     echo -e "${default}Security mode: ${green}${security_mode}${default}"
     echo -e "(changed in config/settings.cfg)"
     echo -e ""
-    echo -e "${lightgreen}Application Commands${default}"
+    echo -e "${lightgreen}[Application Commands]${default}"
     {
         echo -e "${green}start-service\t${default}      | Start the Pest Control service"
         echo -e "${green}run-service\t${default}      | Run the Pest Control service"
@@ -112,25 +112,16 @@ case "${getopt}" in
     } | column -s $'\t' -t
 
     echo -e ""
-    echo -e "${lightyellow}Cluster Setup Commands${default}"
+    echo -e "${lightyellow}[Setup Commands]${default}"
     {
-        echo -e "${yellow}install\t${default}            | Download and install CockroachDB ${version}"
+        echo -e "${yellow}install\t${default}            | Download and install CockroachDB (${version})"
         echo -e "${yellow}certs\t${default}            | Generate certificates (secure mode only)"
         echo -e "${yellow}init\t${default}            | Initialize cluster"
         echo -e "${yellow}clean\t${default}            | Clean all data files"
     } | column -s $'\t' -t
 
-    if [ "${toxiproxy}" != "off" ]; then
     echo -e ""
-    echo -e "${lightcyan}Toxiproxy Commands${default}"
-    {
-        echo -e "${cyan}start-toxi\t${default}         | Start toxiproxy server and add node proxies"
-        echo -e "${cyan}stop-toxi\t${default}         | Stop toxiproxy server"
-    } | column -s $'\t' -t
-    fi
-
-    echo -e ""
-    echo -e "${lightmagenta}Cluster Management Commands${default}"
+    echo -e "${lightmagenta}[Management Commands]${default}"
     {
         echo -e "${magenta}login\t${default}          | Get Cluster API session token"
         echo -e "${magenta}logout\t${default}          | Close API sessions"
@@ -152,7 +143,7 @@ case "${getopt}" in
     } | column -s $'\t' -t
 
     echo -e ""
-    echo -e "${lightcyan}Cluster Query Commands${default}"
+    echo -e "${lightcyan}[Query Commands]${default}"
     {
         echo -e "${cyan}sql\t${default}           | Connect to SQL console"
         echo -e "${cyan}open\t${default}           | Open admin URL in browser"
@@ -160,5 +151,17 @@ case "${getopt}" in
         echo -e "${cyan}status\t${default}           | Print node status"
         echo -e "${cyan}nodes\t${default}           | Print node details"
     } | column -s $'\t' -t
+
+    echo -e ""
+    echo -e "${lightred}[Toxiproxy Commands]${default}"
+    if [ ! "${toxiproxy}" != "off" ]; then
+    echo -e "${yellow}(toxiproxy=off - changed in config/settings.cfg)${default}"
+    fi
+
+    {
+        echo -e "${red}start-toxi\t${default}         | Start toxiproxy server and add node proxies"
+        echo -e "${red}stop-toxi\t${default}         | Stop toxiproxy server"
+    } | column -s $'\t' -t
+
 
 esac

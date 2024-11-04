@@ -38,17 +38,16 @@
                 <div class="shadow-sm p-3 mb-5 bg-body-secondary rounded">
                     Signed in as
                     <span class="badge text-bg-success" th:text="${#authentication.name}"></span>
-                    to
-                    <a type="btn" target="_blank"
+                    to cluster <a type="btn" target="_blank"
                        id="clusterId"
                        th:href="${clusterProperties.adminUrl}"
-                       th:text="${clusterProperties.clusterId}">DB Console</a>.
+                       th:text="${clusterProperties.clusterId}"></a>.
 
-                    <span class="badge text-bg-success" th:text="${clusterVersion}"></span>
+                    <span class="badge text-bg-success mt-2" th:text="${clusterVersion}"></span>
                 </div>
 
                 <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mb-5">
-                    <a class="btn btn-lg btn-primary" href="/cluster">[[#{navigation.cluster.dashboard}]]</a>
+                    <a class="btn btn-lg btn-primary" href="/cluster">[[#{navigation.cluster}]]</a>
                 </div>
             </div>
         </div>

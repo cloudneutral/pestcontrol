@@ -3,8 +3,10 @@
 #
 # This file overrides the application configuration properties, mainly in providing a list of
 # available CockroachDB clusters for users to pick from at login time.
+#
 # The credentials are used to retrieve Cluster API session tokens and provide bearer tokens in
 # case of CockroachDB cloud (Cloud API).
+#
 # The cluster type is used to adapt security settings and certain UI features.
 #
 # For the application properties this file overrides, see: src/resources/application.yml.
@@ -27,8 +29,8 @@
 #            type: "PKCS12"
 
 ## HTTP server parameters
-#server:
-#  port: 9090
+server:
+  port: 9090
 
 ## List of all available CockroachDB clusters
 #
