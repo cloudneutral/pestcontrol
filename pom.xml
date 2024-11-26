@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.5</version>
+        <version>3.4.0</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
@@ -18,15 +18,15 @@
         <groups>unit-test</groups>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <spring.boot.version>3.3.5</spring.boot.version>
+        <spring.boot.version>3.4.0</spring.boot.version>
     </properties>
 
     <inceptionYear>2024</inceptionYear>
 
     <scm>
-        <connection>scm:git:https://github.com/cloudneutral/pestcontrol.git</connection>
-        <developerConnection>scm:git:https://github.com/cloudneutral/pestcontrol.git</developerConnection>
-        <url>https://github.com/cloudneutral/pestcontrol.git</url>
+        <connection>scm:git:https://github.com/kai-niemi/pestcontrol.git</connection>
+        <developerConnection>scm:git:https://github.com/kai-niemi/pestcontrol.git</developerConnection>
+        <url>https://github.com/kai-niemi/pestcontrol.git</url>
         <tag>HEAD</tag>
     </scm>
 
@@ -48,14 +48,14 @@
 
     <issueManagement>
         <system>GitHub</system>
-        <url>https://github.com/cloudneutral/pestcontrol/issues</url>
+        <url>https://github.com/kai-niemi/pestcontrol/issues</url>
     </issueManagement>
 
     <distributionManagement>
         <repository>
             <id>github</id>
             <name>GitHub Apache Maven Packages</name>
-            <url>https://maven.pkg.github.com/cloudneutral/pestcontrol</url>
+            <url>https://maven.pkg.github.com/kai-niemi/pestcontrol</url>
         </repository>
     </distributionManagement>
 

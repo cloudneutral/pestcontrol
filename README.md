@@ -1,5 +1,5 @@
 <p>	
-	<a href="https://github.com/cloudneutral/pestcontrol/actions/workflows/maven.yml"><img src="https://github.com/cloudneutral/pestcontrol/actions/workflows/maven.yml/badge.svg?branch=main" alt="">
+	<a href="https://github.com/kai-niemi/pestcontrol/actions/workflows/maven.yml"><img src="https://github.com/kai-niemi/pestcontrol/actions/workflows/maven.yml/badge.svg?branch=main" alt="">
 </p>
 
 <!-- TOC -->
@@ -36,7 +36,7 @@
 
 <img  align="left" src=".github/logo.png" alt="" width="64"/> 
 
-[Pest Control](https://github.com/cloudneutral/pestcontrol) is a combined graphical and command-line tool for 
+[Pest Control](https://github.com/kai-niemi/pestcontrol) is a combined graphical and command-line tool for 
 controlling and visualizing CockroachDB cluster failures, and it's 
 impact on application workloads. It supports CockroachDB Cloud 
 and local, self-hosted clusters for which it provides easy-to-use 
